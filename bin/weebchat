@@ -1,2 +1,29 @@
 #!/usr/bin/env node
 'use strict';
+
+var program = require('commander'),
+    project = require('../package'),
+    mainApp = require('../');
+
+program
+  .version(project.version)
+  .option('-p, --port', 'the port to bind to. default: 9399')
+  .option('-b, --host', 'set the host to bind to. default: 0.0.0.0')
+  .option('-e, --env', 'set environment to execute in. default: development')
+  .option('-c, --config [path]', 'path to the config file to be used')
+  .parse(process.argv);
+
+/**
+ * Starts the World...
+ *
+ * @param {Object} argv - Arguments for the server to start with.
+ */
+function start(argv) {
+  var host = argv.host || '0.0.0.0',
+      port = argv.port || 9399,
+      env  = argv.env  || 'development';
+
+  mainApp.go(host, port, env);
+}
+
+start(program);

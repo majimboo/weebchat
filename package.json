@@ -26,7 +26,11 @@
   },
   "homepage": "https://github.com/majimboo/weebchat",
   "devDependencies": {
+    "debug": "^2.0.0",
     "mocha": "^1.21.4",
     "should": "^4.0.4"
+  },
+  "dependencies": {
+    "commander": "^2.3.0"
   }
 }
