@@ -95,33 +95,28 @@ Manager.prototype.receive = function(data, session) {
   // our protocol is text based but node.js gives as a buffer
   var req = data.toString().replace(/(\r\n|\n|\r)/gm, '');
 
-  // treat everything as a command
-
   // discard all empty requests
   if (req.length <= 0) return;
 
-  // nickname
-  if (req[0] !== '/' && !session.nickname) {
-    req = '/setname ' + req;
+  // handle commands
+  if (req[0] === '/') {
+    this.processCommand(req, session);
   }
 
-  // room select
-  if (req[0] !== '/' && session.nickname) return;
-
-  // chat
-  if (req[0] !== '/' && !!session.currentRoom) {
-    req = '/chat ' + req;
+  // handle chat
+  if (!!session.currentRoom) {
+    this.processChat(req, session);
+  } else {
+    console.log(req);
   }
+}
 
-  // check the arguments;
-  Log.debug(req);
+Manager.prototype.processCommand = function(req, session) {
+  var command = this.commands[req.substr(1, req.indexOf(' '))];
 
-  var args = req.split(' ');
-  var command = this.commands[args[0].substring(1)];
-
-  if (req[0] === '/' && !command) {
+  if (!command) {
     // send back info to requestor
-    this.send(session.id, 'unknown command');
+    // this.send(session.id, 'unknown command');
 
     // maybe give back complete list of valid commands
 
@@ -129,16 +124,22 @@ Manager.prototype.receive = function(data, session) {
     return Log.warn();
   }
 
+  var struct = command.struct(req);
+
   if (command.callback) {
-    return command.callback(args.slice(1), session);
+    return command.callback(struct, session);
   }
 
   return Log.warn('command has no registered callback');
 }
 
-Manager.prototype.registerCommand = function(cmd, level) {
+Manager.prototype.processChat = function(req, session) {
+  console.log(req);
+}
+
+Manager.prototype.registerCommand = function(cmd, struct) {
   this.commands[cmd] = {};
-  this.commands[cmd].level = level;
+  this.commands[cmd].struct = struct;
   this.commands[cmd].callback = null;
 }
 

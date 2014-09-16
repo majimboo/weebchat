@@ -21,7 +21,7 @@ function start(host, port, env) {
   Network.on('new client', accept);
 
   // hooks
-  Network.hookCommand('setname', onSetName);
+  Network.hookCommand('nick', onNick);
   Network.hookCommand('rooms', onRooms);
 }
 
@@ -33,7 +33,7 @@ function accept(session) {
   return session.accepted();
 }
 
-function onSetName(msg, session) {
+function onNick(msg, session) {
   // set the nickname for the session
   session.setNickname(msg[0]);
   Network.send(session.id, 'Welcome ' + session.nickname + '\r\n');

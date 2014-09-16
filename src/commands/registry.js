@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
+var CMD = require('./structure');
+
 module.exports = {
-  'setname': 'guest',
-  'rooms': 'user',
+  'nick': CMD.NICK,
+  'rooms': CMD.ROOMS,
 }

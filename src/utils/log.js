@@ -36,14 +36,17 @@ function Log(options) {
 }
 
 Log.prototype.info = function(msg, clear) {
+    msg = msg || '';
     this.logger('\u001b[34minfo:\u001b[39m ' + msg);
 };
 
 Log.prototype.debug = function(msg) {
+    msg = msg || '';
     this.logger('\u001b[36mdebug:\u001b[39m ' + msg);
 };
 
 Log.prototype.warn = function(msg) {
+    msg = msg || '';
     this.logger('\u001b[35mwarn:\u001b[39m ' + msg);
 };
 
