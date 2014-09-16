@@ -3,7 +3,8 @@
 
 var program = require('commander'),
     project = require('../package'),
-    mainApp = require('../');
+    engine  = require('../'),
+    Log     = require('../src/utils/log');
 
 program
   .version(project.version)
@@ -14,16 +15,24 @@ program
   .parse(process.argv);
 
 /**
- * Starts the World...
+ * Main program entry point.
  *
  * @param {Object} argv - Arguments for the server to start with.
  */
-function start(argv) {
+function main(argv) {
   var host = argv.host || '0.0.0.0',
       port = argv.port || 9399,
       env  = argv.env  || 'development';
 
-  mainApp.go(host, port, env);
+  engine.start(host, port, env);
 }
 
-start(program);
+// stuff
+Log.cls();
+Log.info('              .       .       .    ');
+Log.info('. , , ,-. ,-. |-. ,-. |-. ,-. |-   ');
+Log.info('|/|/  |-\' |-\' | | |   | | ,-| |  ');
+Log.info('\' \'   `-\' `-\' ^-\' `-\' \' \' `-^ `\'');
+Log.info('');
+
+main(program);

@@ -1,26 +1,46 @@
 #!/usr/bin/env node
 'use strict';
 
-var server = require('./lib/network/server').create(),
-    debug  = require('debug')('weebchat');
+var Network = require('./src/network/manager').init(),
+    Log     = require('./src/utils/log');
 
 /**
- * Main program entry point.
+ * Starts the engine.
  *
  * @param  {String} host - Host to bind to.
  * @param  {Number} port - Port to bind to.
  * @param  {String} env  - Environment to run in.
  */
-function main(host, port, env) {
-  server.listen(port, host);
+function start(host, port, env) {
+  Log.info('booting in ' + env);
 
-  debug('booting in %s', env);
+  Network.listen(port, host, function() {
+    Log.info('staged on ' + host + ':' + port);
+  });
 
-  server.on('listening', staged.bind(null, host, port));
+  Network.on('new client', accept);
+
+  // hooks
+  Network.hookCommand('setname', onSetName);
+  Network.hookCommand('rooms', onRooms);
 }
 
-function staged(host, port) {
-  debug('staged on %s:%s', host, port);
+function accept(session) {
+  Network.send(session.id, '\r\n');
+  Network.send(session.id, 'Welcome to the Weeb chat server\r\n');
+  Network.send(session.id, 'Login Name?\r\n');
+  // update session state
+  return session.accepted();
+}
+
+function onSetName(msg, session) {
+  // set the nickname for the session
+  session.setNickname(msg[0]);
+  Network.send(session.id, 'Welcome ' + session.nickname + '\r\n');
+}
+
+function onRooms(msg, session) {
+  Network.send(session.id, 'rooms');
 }
 
 /**
@@ -28,5 +48,5 @@ function staged(host, port) {
  * @type {Object}
  */
 module.exports = {
-  go: main
+  start: start
 }

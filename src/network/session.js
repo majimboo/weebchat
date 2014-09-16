@@ -15,14 +15,28 @@ SessionService.prototype.create = function(sessionId, socket) {
   return session;
 };
 
+SessionService.prototype.get = function(sessionId) {
+  return this.sessions[sessionId];
+};
+
 function Session(sid, socket, service) {
   this.id = sid;
+  this.nickname = null;
+  this.currentRoom = null;
 
   // private
   this.$socket  = socket;
   this.$service = service;
-};
+}
 
 Session.prototype.dataCallback = function(callback) {
   this.$socket.on('data', callback);
+};
+
+Session.prototype.accepted = function() {
+
+};
+
+Session.prototype.setNickname = function(name) {
+  return this.nickname = name;
 };
