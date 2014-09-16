@@ -1,0 +1,32 @@
+{
+  "name": "weebchat",
+  "version": "0.0.1",
+  "description": "Weeby Simulation Exam - Chat Server",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "start": "bin/weebchat --env production -p 5000",
+    "test": "./node_modules/mocha/bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/majimboo/weebchat"
+  },
+  "keywords": [
+    "chat",
+    "server",
+    "weeby"
+  ],
+  "author": "Majid Arif Siddiqui <me@majidarif.com> (http://blog.majidarif.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/majimboo/weebchat/issues"
+  },
+  "homepage": "https://github.com/majimboo/weebchat",
+  "devDependencies": {
+    "mocha": "^1.21.4",
+    "should": "^4.0.4"
+  }
+}
