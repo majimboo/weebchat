@@ -142,7 +142,7 @@ Manager.prototype.command_callback = function(action, message, session) {
     return command.callback(struct, session);
   }
 
-  return Log.warn('command has no registered callback');
+  return Log.warn('command [%s] has no registered callback', action);
 }
 
 Manager.prototype.registerCommand = function(cmd, struct) {
