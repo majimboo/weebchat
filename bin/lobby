@@ -3,13 +3,43 @@
 
 var program = require('commander');
 var project = require('../package');
-var engine  = require('../');
+var engine  = require('../src/engine/lobby');
 var Log     = require('../src/utils/log');
 
 program
   .version(project.version)
-  .option('-p, --port', 'the port to bind to. default: 9399')
-  .option('-b, --host', 'set the host to bind to. default: 0.0.0.0')
-  .option('-e, --env', 'set environment to execute in. default: development')
+  .option('-p, --port [port]', 'the port to bind to')
+  .option('-b, --host [host]', 'set the host to bind to')
+  .option('-e, --env [environment]', 'set environment to execute in')
   .option('-c, --config [path]', 'path to the config file to be used')
   .parse(process.argv);
+
+/**
+ * Main program entry point.
+ *
+ * @param {Object} argv - Arguments for the server to start with.
+ */
+function main(argv) {
+  var config = {
+    host: argv.host || '0.0.0.0',
+    port: argv.port || 9399,
+    env: argv.env  || 'development'
+  }
+
+  if (argv.config) {
+    config = YAML.load(argv.config);
+  }
+
+  engine.start(config);
+}
+
+// stuff
+Log.cls();
+Log.info('              .       .       .    ');
+Log.info('. , , ,-. ,-. |-. ,-. |-. ,-. |-   ');
+Log.info('|/|/  |-\' |-\' | | |   | | ,-| |  ');
+Log.info('\' \'   `-\' `-\' ^-\' `-\' \' \' `-^ `\'');
+Log.info('          | LOBBY |');
+Log.info('');
+
+main(program);

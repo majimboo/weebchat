@@ -3,15 +3,15 @@
 
 var program = require('commander');
 var project = require('../package');
-var engine  = require('../');
+var engine  = require('../src/engine/weebchat');
 var Log     = require('../src/utils/log');
 var YAML    = require('yamljs');
 
 program
   .version(project.version)
-  .option('-p, --port', 'the port to bind to. default: 9399')
-  .option('-b, --host', 'set the host to bind to. default: 0.0.0.0')
-  .option('-e, --env', 'set environment to execute in. default: development')
+  .option('-p, --port [port]', 'the port to bind to')
+  .option('-b, --host [host]', 'set the host to bind to')
+  .option('-e, --env [environment]', 'set environment to execute in')
   .option('-c, --config [path]', 'path to the config file to be used')
   .parse(process.argv);
 
@@ -24,7 +24,7 @@ function main(argv) {
   var config = {
     host: argv.host || '0.0.0.0',
     port: argv.port || 9399,
-    env: argv.env  || 'development'
+    env:  argv.env  || 'development'
   }
 
   if (argv.config) {
@@ -40,6 +40,7 @@ Log.info('              .       .       .    ');
 Log.info('. , , ,-. ,-. |-. ,-. |-. ,-. |-   ');
 Log.info('|/|/  |-\' |-\' | | |   | | ,-| |  ');
 Log.info('\' \'   `-\' `-\' ^-\' `-\' \' \' `-^ `\'');
+Log.info('         | SERVER |');
 Log.info('');
 
 main(program);

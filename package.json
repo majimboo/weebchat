@@ -2,12 +2,15 @@
   "name": "weebchat",
   "version": "0.0.1",
   "description": "Weeby Simulation Exam - Chat Server",
-  "main": "index.js",
   "directories": {
     "test": "test"
   },
+  "bin": {
+    "wc-lobby": "./bin/lobby",
+    "wc-server": "./bin/weebchat"
+  },
   "scripts": {
-    "start": "bin/weebchat --env production -p 5000",
+    "start": "./bin/lobby --env production -p 9399",
     "test": "./node_modules/mocha/bin/mocha"
   },
   "repository": {
