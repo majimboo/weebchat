@@ -6,6 +6,7 @@ var mongoose = require('mongoose');
 var Network = require('../network/manager').init();
 var Log     = require('../utils/log');
 var Room    = require('../models/room');
+var utils   = require('../utils/helpers');
 
 function mongodb_connect(config) {
   mongoose.connect(config, {
@@ -48,7 +49,7 @@ function start(config) {
   Network.on('new client', accept);
 
   // hooks
-  Network.hookCommand('connect', onConnect);
+  Network.hookCommand('enter', onEnter);
   Network.hookCommand('rooms', onRooms);
 }
 
@@ -57,10 +58,26 @@ function accept(session) {
   Network.send(session.id, 'Login Name?');
 }
 
-function onConnect(msg, session) {
-  // set the nickname for the session
-  session.setName(msg.name);
-  Network.send(session.id, 'Welcome ' + session.realname + '!');
+function onEnter(msg, session) {
+  var name = msg.name;
+  var sid  = session.id;
+
+  // validate name
+  var validName = utils.validateName(name);
+  var goodName  = true;
+  var notTaken  = true;
+
+  if (validName && goodName && notTaken) {
+    // set the nickname for the session
+    session.setName(name);
+    return Network.send(sid, 'Welcome ' + session.realname + '!');
+  }
+
+  if (!notTaken) {
+    return Network.send(sid, 'Sorry, name taken.');
+  }
+
+  Network.send(sid, 'Sorry, name is invalid.');
 }
 
 function onRooms(msg, session) {

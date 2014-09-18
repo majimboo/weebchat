@@ -3,7 +3,7 @@
 
 var CMD = {};
 
-CMD.CONNECT = function(msg) {
+CMD.ENTER = function(msg) {
   return {
     name: msg
   }

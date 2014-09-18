@@ -120,7 +120,7 @@ Manager.prototype.receive = function(data, session) {
     }
 
     if (!session.realname && !session.nickname) {
-      return self.command_callback('connect', message, session);
+      return self.command_callback('enter', message, session);
     }
 
     // fallback to chat
