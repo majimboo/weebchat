@@ -3,8 +3,10 @@
 
 var CMD = {};
 
-CMD.NICK = function(msg) {
-  return msg;
+CMD.CONNECT = function(msg) {
+  return {
+    name: msg
+  }
 }
 
 CMD.ROOMS = function(msg) {

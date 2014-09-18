@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 'use strict';
 
-var net = require('net'),
-    util = require('util'),
-    events = require('events'),
-    //
-    registry = require('../commands/registry'),
-    //
-    Log = require('../utils/log'),
-    SessionService = require('./session');
+var net = require('net');
+var util = require('util');
+var events = require('events');
+
+var registry = require('../commands/registry');
+
+var Log = require('../utils/log');
+var _   = require('lodash');
+var SessionService = require('./session');
 
 /**
  * The network manager.
@@ -42,16 +43,16 @@ Manager.prototype.listen = function() {
 }
 
 Manager.prototype.ready = function(server) {
-  var _this = this;
+  var self = this;
   server.on('connection', function(socket) {
-    _this.accept(socket);
+    self.accept(socket);
   });
 }
 
 Manager.prototype.accept = function(socket) {
   // double check connection if it has
   // gone through proper authorities
-  var _this = this;
+  var self = this;
 
   // create a new session
   var identity = socket.remoteAddress + ':' + socket.remotePort;
@@ -62,12 +63,12 @@ Manager.prototype.accept = function(socket) {
 
   // frame all incoming stream
   socket.on('data', function(data) {
-    _this.receive(data, session);
+    self.receive(data, session);
   });
 
   // destroy session if socket is gone
   socket.on('end', function() {
-    _this.sessions.destroy(identity);
+    self.sessions.destroy(identity);
   });
 }
 
@@ -78,7 +79,7 @@ Manager.prototype.send = function(sid, msg) {
   // encrypt message
 
   // send msg
-  session.$socket.write(msg);
+  session.$socket.write(msg + '\n');
 }
 
 Manager.prototype.sendToRoom = function(roomId, msg) {
@@ -92,49 +93,57 @@ Manager.prototype.sendToRoom = function(roomId, msg) {
 }
 
 Manager.prototype.receive = function(data, session) {
-  // our protocol is text based but node.js gives as a buffer
-  var req = data.toString().replace(/(\r\n|\n|\r)/gm, '');
+  var self = this;
 
-  // discard all empty requests
-  if (req.length <= 0) return;
+  // handle received data here
+  var container = '';
 
-  // handle commands
-  if (req[0] === '/') {
-    this.processCommand(req, session);
+  // text based protocol
+  if (data instanceof Buffer) {
+    data = data.toString();
   }
 
-  // handle chat
-  if (!!session.currentRoom) {
-    this.processChat(req, session);
-  } else {
-    console.log(req);
-  }
+  // stream framing
+  data = container + data;
+  var lines = data.split(/\r?\n/);
+  container = lines.pop();
+
+  _.each(lines, function(message) {
+    // clean messages
+    message = message.replace(/(\r\n|\n|\r)/gm, '');
+
+    // commands
+    if (/^[\/]/.test(message)) {
+      var argv = message.substr(1).split(/[\s,]+/);
+      var command = argv.shift();
+      return self.command_callback(command, argv, session);
+    }
+
+    if (!session.realname && !session.nickname) {
+      return self.command_callback('connect', message, session);
+    }
+
+    // fallback to chat
+    self.command_callback('chat', message, session);
+  });
 }
 
-Manager.prototype.processCommand = function(req, session) {
-  var command = this.commands[req.substr(1, req.indexOf(' '))];
+Manager.prototype.command_callback = function(action, message, session) {
+  var command = this.commands[action];
 
   if (!command) {
-    // send back info to requestor
-    // this.send(session.id, 'unknown command');
-
-    // maybe give back complete list of valid commands
-
-    // log the unknown command and the requestor for security purposes
-    return Log.warn();
+    this.send(session.id, 'Sorry, invalid command.');
+    var identity = (session.realname || session.id);
+    return Log.warn('invalid command [%s] from %s', action, identity);
   }
 
-  var struct = command.struct(req);
+  var struct = command.struct(message);
 
   if (command.callback) {
     return command.callback(struct, session);
   }
 
   return Log.warn('command has no registered callback');
-}
-
-Manager.prototype.processChat = function(req, session) {
-  console.log(req);
 }
 
 Manager.prototype.registerCommand = function(cmd, struct) {
@@ -152,7 +161,7 @@ Manager.prototype.hookCommand = function(cmd, callback) {
  *
  * @return {Manager}
  */
-function createServer(raw) {
+function init(raw) {
   var mgr = new Manager(raw);
 
   var keys = Object.keys(registry);
@@ -170,5 +179,5 @@ function createServer(raw) {
  * @type {Object}
  */
 module.exports = {
-  init: createServer,
+  init: init
 }

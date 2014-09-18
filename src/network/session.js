@@ -21,6 +21,7 @@ SessionService.prototype.get = function(sessionId) {
 
 function Session(sid, socket, service) {
   this.id = sid;
+  this.realname = null;
   this.nickname = null;
   this.currentRoom = null;
 
@@ -33,10 +34,6 @@ Session.prototype.dataCallback = function(callback) {
   this.$socket.on('data', callback);
 };
 
-Session.prototype.accepted = function() {
-
-};
-
-Session.prototype.setNickname = function(name) {
-  return this.nickname = name;
+Session.prototype.setName = function(name) {
+  return this.nickname = this.realname = name;
 };

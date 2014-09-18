@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+'use strict';
+
+var program = require('commander');
+var project = require('../package');
+var engine  = require('../');
+var Log     = require('../src/utils/log');
+
+program
+  .version(project.version)
+  .option('-p, --port', 'the port to bind to. default: 9399')
+  .option('-b, --host', 'set the host to bind to. default: 0.0.0.0')
+  .option('-e, --env', 'set environment to execute in. default: development')
+  .option('-c, --config [path]', 'path to the config file to be used')
+  .parse(process.argv);

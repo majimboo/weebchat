@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 'use strict';
 
-var program = require('commander'),
-    project = require('../package'),
-    engine  = require('../'),
-    Log     = require('../src/utils/log');
+var program = require('commander');
+var project = require('../package');
+var engine  = require('../');
+var Log     = require('../src/utils/log');
+var YAML    = require('yamljs');
 
 program
   .version(project.version)
@@ -20,11 +21,17 @@ program
  * @param {Object} argv - Arguments for the server to start with.
  */
 function main(argv) {
-  var host = argv.host || '0.0.0.0',
-      port = argv.port || 9399,
-      env  = argv.env  || 'development';
+  var config = {
+    host: argv.host || '0.0.0.0',
+    port: argv.port || 9399,
+    env: argv.env  || 'development'
+  }
 
-  engine.start(host, port, env);
+  if (argv.config) {
+    config = YAML.load(argv.config);
+  }
+
+  engine.start(config);
 }
 
 // stuff
