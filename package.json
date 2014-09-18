@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "commander": "^2.3.0",
+    "kamote": "git+https://github.com/majimboo/kamote.git",
     "lodash": "^2.4.1",
     "mongoose": "^3.8.16",
     "yamljs": "^0.2.0"

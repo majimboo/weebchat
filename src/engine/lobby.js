@@ -1,4 +1,6 @@
-#!/usr/bin/env node
+/**
+ * Lobby acts as a load balancer.
+ */
 'use strict';
 
 var Network = require('../network/manager').init();
