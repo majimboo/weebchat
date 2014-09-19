@@ -44,11 +44,22 @@ function start(config) {
   Network.hookCommand('quit', onQuit);
 }
 
+/**
+ * [accept description]
+ *
+ * @param  {Object} session - User session that sent the request.
+ */
 function accept(session) {
   Network.send(session.id, '\nWelcome to the Weeb chat server');
   Network.send(session.id, 'Login Name?');
 }
 
+/**
+ * [onEnter description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
 function onEnter(msg, session) {
   var name = msg.name;
   var sid  = session.id;
@@ -73,6 +84,12 @@ function onEnter(msg, session) {
   Network.send(session.id, 'Login Name?');
 }
 
+/**
+ * [onRooms description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
 function onRooms(msg, session) {
   var sid = session.id;
 
@@ -92,6 +109,12 @@ function onRooms(msg, session) {
   Network.send(sid, 'There are currently no active rooms.');
 }
 
+/**
+ * [onServers description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
 function onServers(msg, session) {
   var sid = session.id;
 
@@ -113,11 +136,18 @@ function onServers(msg, session) {
   Network.send(sid, 'There are currently no active servers.');
 }
 
+/**
+ * [onCreate description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
 function onCreate(msg, session) {
   var name = msg.name;
   var sid  = session.id;
   var nick = session.realname;
 
+  // validate params
   if (!name) return Network.send(sid, '/create <room>');
 
   // validate room name
@@ -145,6 +175,12 @@ function onCreate(msg, session) {
   Network.send(sid, 'Sorry, something went wrong.');
 }
 
+/**
+ * [onJoin description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
 function onJoin(msg, session) {
   var room = msg.room;
   var sid  = session.id;
@@ -161,6 +197,12 @@ function onJoin(msg, session) {
   Network.send(sid, 'Sorry, invalid room.');
 }
 
+/**
+ * [onChat description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
 function onChat(msg, session) {
   var room = session.get('room');
   var message = msg.msg;
@@ -172,14 +214,30 @@ function onChat(msg, session) {
   Network.send(session.id, 'Sorry, you are not in any room.');
 }
 
+/**
+ * [onQuit description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
 function onQuit(msg, session) {
   session.kick();
 }
 
+/**
+ * [handleError description]
+ *
+ * @param  {String} sid - Session ID.
+ */
 function handleError(sid) {
   Network.send(sid, 'Sorry, an error occured.');
 }
 
+/**
+ * [notAllowed description]
+ *
+ * @param  {String} sid - Session ID.
+ */
 function notAllowed(sid) {
   Network.send(sid, 'Sorry, request not available here.');
 }
