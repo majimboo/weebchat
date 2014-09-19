@@ -5,31 +5,14 @@
 
 var _        = require('lodash');
 var kamote   = require('kamote');
-var mongoose = require('mongoose');
 
 var Network = require('../network/manager').init();
-var Room    = require('../models/room');
-var User    = require('../models/user');
-var Pool    = {};
+var Room    = require('../db/room');
 
 var Log     = require('../utils/log');
 var utils   = require('../utils/helpers');
 
 var Inter  = new kamote.Server();
-
-function mongodb_connect(config) {
-  mongoose.connect(config, {
-    server: { socketOptions: { keepAlive: 1 }}
-  });
-  var conn = mongoose.connection;
-  // reconnect if lost connection to mongodb
-  conn.on('disconnected', function() {
-    Log.warn('lost connection to database');
-    // recursive retry...
-    mongodb_connect(config);
-  });
-  return conn;
-}
 
 /**
  * Starts the engine.
@@ -38,12 +21,6 @@ function mongodb_connect(config) {
  */
 function start(config) {
   Log.info('booting in %s', config.env);
-
-  // connect to mongodb
-  var mongodb = mongodb_connect(config.db);
-  mongodb.on('connected', function() {
-    Log.info('database connection established');
-  });
 
   // frontend
   Network.listen(config.port, config.host, function() {
@@ -70,7 +47,7 @@ function start(config) {
 
 function bootInter() {
   Inter.add('addToPool', function(info) {
-    Pool[info.id] = info;
+    DB.setPool(info.id, info);
     Log.success('server %s added to pool', info.id);
   });
 
@@ -90,20 +67,13 @@ function bootInter() {
 
 function roomCleaner() {
   // delete all rooms that the loc is not in the Pool
-  Room.find({ loc: { $ne: null }}, function(err, rooms) {
-    if (err) return Log.warn('room cleanup failed');
+  var rooms = Room.select();
 
-    var danglers = _.filter(rooms, function(room) {
-      return Pool[room.loc] === undefined;
-    })
-
-    _.each(danglers, function(room) {
-      // deactive
+  _.each(rooms, function(room) {
+    if (!!room.loc) {
       room.loc = null;
-      room.save(function(err) {
-        if (!err) return Log.success('room [%s] deactived', room.name);
-      });
-    });
+      return Log.success('room [%s] deactived', room.name);
+    }
   });
 }
 
@@ -140,21 +110,18 @@ function onRooms(msg, session) {
 
   if (!session.realname) return notAllowed(sid);
 
-  Room.find({ loc: { $ne: null }}, function(err, rooms) {
-    if (err) return handleError(sid);
+  var rooms = Room.find({ loc: { not: null } });
 
-    if (!rooms.length) {
-      Network.send(sid, 'There are currently no active rooms.');
-      return;
-    }
-
+  if (!!rooms.length) {
     Network.send(sid, 'Active rooms are:');
-    for (var i = 0; i < rooms.length; i++) {
-      var room = rooms[i];
-      Network.send(sid, ' * ' + room.name + ' (' + room.users.length + ')');
-    }
+    _.each(rooms, function(room) {
+      Network.send(sid, ' * ' + room.name + ' (' + room.userCount() + ')');
+    });
     Network.send(sid, 'end of list.');
-  });
+    return;
+  }
+
+  Network.send(sid, 'There are currently no active rooms.');
 }
 
 function onCreate(msg, session) {
@@ -170,79 +137,31 @@ function onCreate(msg, session) {
   }
 
   // check if room doesn't exist yet
-  Room.findOne({ name: name }, function(err, room) {
-    if (err) return handleError(sid);
+  if (!!Room.select(name)) {
+    return Network.send(sid, 'Sorry, name taken.');
+  } else {
+    Room.insert(name, { name: name });
+    return Log.success('%s has created [%s] room', nick, name);
+  }
 
-    // room isn't taken yet
-    if (!room) {
-      Room.create({
-        name: name,
-        users: [],
-        archive: [],
-        operators: [],
-        loc: null
-      }, function(err, room) {
-        if (err) return handleError(sid);
-        if (room) {
-          Network.send(sid, 'Successfully created.');
-
-          var server = _.find(Pool, function(server) {
-            return Object.keys(server.rooms).length < server.max_rooms;
-          });
-
-          // create new Remote connection
-          session._remote.connect(server.port, server.host);
-          session._remote.on('ready', function() {
-            session._remote.makeRoom(server.id, room);
-          });
-
-          Log.success('%s has created [%s] room', nick, name);
-          return;
-        }
-
-        // fallback for unexpected behaviour
-        Network.send(sid, 'Sorry, something went wrong.');
-      });
-      return;
-    }
-
-    // room already exists
-    Network.send(sid, 'Sorry, name taken.');
-  });
+  // fallback for unexpected behaviour
+  Network.send(sid, 'Sorry, something went wrong.');
 }
 
 function onJoin(msg, session) {
   var room = msg.room;
   var sid  = session.id;
-  var nick = session.realname;
 
   // validate params
   if (!room) return Network.send(sid, '/join <room>');
 
-  // validate if room exist
-  Room.findOne({ name: room, loc: { $ne: null }}, function(err, room) {
-    if (err) return handleError(sid);
+  // check if room exists
+  if (!!Room.select(room)) {
+    return;
+  }
 
-    // room is active
-    if (room) {
-      // find room server
-      var server = _.find(Pool, function(server) {
-        return _.find(server.rooms, function(rooms, key) {
-          return key === room.name;
-        }) !== undefined;
-      });
-
-      // create new Remote connection
-      session._remote.connect(server.port, server.host);
-      session._remote.on('ready', function() {
-        session._remote.join(room, session);
-      });
-      return;
-    }
-
-    // fallback for unexpected behaviour
-    Network.send(sid, 'Sorry, invalid room.');
-  });
+  // fallback for unexpected behaviour
+  Network.send(sid, 'Sorry, invalid room.');
 }
 
 function onChat(msg, session) {
