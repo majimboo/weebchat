@@ -7,7 +7,7 @@ I was tasked to write a *telnet chat server* that is scalable and production
 ready. The emphasis was on the network architecture and scalability.
 
 A good fit for this task is a dynamically routed distributed server. The basic
-idea is have a loadbalancer listening on 2 ends, the front and the back.
+idea is to have a loadbalancer listening on 2 ends, the front and the back.
 
 The frontend - waits for incoming clients *a.k.a* the **users**. Each time a new
 user gets connected, the front facing port of the loadbalancer acts as a
@@ -29,7 +29,7 @@ then the loadbalancer chooses another available workers from the list.
 Suppose that the **loadbalancer** is a person, lets call him Guy. Guy is an egg
 sorter, he does this for a living and he is very good at it.
 
-The eggs he sorts are not your common eggs. They come as normal eggs,
+The eggs he sorts are not your typical eggs. They come as normal eggs,
 plain white, then in-time they magically turn into a different color.
 This is when Guy needs to sort them.
 

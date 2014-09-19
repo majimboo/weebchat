@@ -45,5 +45,5 @@ function Room(data) {
 }
 
 Room.prototype.userCount = function() {
-  return Object.keys(this.users).length;
+  return _.keys(this.users).length;
 }

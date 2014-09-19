@@ -3,16 +3,18 @@
  */
 'use strict';
 
-var _        = require('lodash');
-var kamote   = require('kamote');
+var _      = require('lodash');
+var kamote = require('kamote');
+
+var Room   = require('../db/room');
+var User   = require('../db/user');
+var Server = require('../db/server');
 
 var Network = require('../network/manager').init();
-var Room    = require('../db/room');
-
 var Log     = require('../utils/log');
 var utils   = require('../utils/helpers');
 
-var Inter  = new kamote.Server();
+var Lobby  = new kamote.Server();
 
 /**
  * Starts the engine.
@@ -23,15 +25,11 @@ function start(config) {
   Log.info('booting in %s', config.env);
 
   // frontend
-  Network.listen(config.port, config.host, function() {
-    Log.info('staged on %s:%s', config.host, config.port);
-  });
+  Network.listen(config.port, config.host, Network.listen_callback);
 
   // backend
-  Inter.listen(config.inter_port, config.inter_host, function() {
-    Log.info('staged on %s:%s', config.inter_host, config.inter_port);
-    bootInter();
-  });
+  Lobby.listen(config.inter_port, config.inter_host, Network.listen_callback);
+  Lobby.on('connection', Server.add.bind(Server));
 
   roomCleaner();
 
@@ -46,19 +44,19 @@ function start(config) {
 }
 
 function bootInter() {
-  Inter.add('addToPool', function(info) {
+  Lobby.add('addToPool', function(info) {
     Log.success('server %s added to pool', info.id);
   });
 
-  Inter.add('sendToRoom', function(roomId, msg) {
+  Lobby.add('sendToRoom', function(roomId, msg) {
     Network.sendToRoom(roomId, msg);
   });
 
-  Inter.add('send', function(sid, msg) {
+  Lobby.add('send', function(sid, msg) {
     Network.send(sid, msg);
   });
 
-  Inter.add('store', function(sid, key, val) {
+  Lobby.add('store', function(sid, key, val) {
     var session = Network.sessions.get(sid);
     session.set(key, val);
   });

@@ -1,6 +1,6 @@
 'use strict';
 
-var DB = require('./manager').rooms;
+var DB = require('./manager').users;
 var _  = require('lodash');
 
 function Users() {

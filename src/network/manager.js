@@ -154,6 +154,11 @@ Manager.prototype.command_callback = function(action, message, session) {
   return Log.warn('command [%s] has no registered callback', action);
 }
 
+Manager.prototype.listen_callback = function() {
+  var s = this.address();
+  Log.info('staged on %s:%s', s.address, s.port);
+}
+
 Manager.prototype.registerCommand = function(cmd, struct) {
   this.commands[cmd] = {};
   this.commands[cmd].struct = struct;
