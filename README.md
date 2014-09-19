@@ -3,6 +3,8 @@ weebchat
 
 [![Build Status](https://travis-ci.org/majimboo/weebchat.svg?branch=master)](https://travis-ci.org/majimboo/weebchat)
 
+*"Draft"*
+
 I was tasked to write a *telnet chat server* that is scalable and production
 ready. The emphasis was on the network architecture and scalability.
 
