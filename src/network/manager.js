@@ -79,7 +79,7 @@ Manager.prototype.send = function(sid, msg) {
   // encrypt message
 
   // send msg
-  session.$socket.write(msg + '\n');
+  session.$socket.write(msg + '\r\n');
 }
 
 Manager.prototype.sendToRoom = function(roomId, msg) {
@@ -101,6 +101,12 @@ Manager.prototype.receive = function(data, session) {
   // text based protocol
   if (data instanceof Buffer) {
     data = data.toString();
+  }
+
+  // do not allow beyond 100 characters
+  if (data.length > 100) {
+    this.send(session.id, 'Sorry, message cannot exceed 100 characters');
+    return;
   }
 
   // stream framing

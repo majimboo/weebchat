@@ -62,6 +62,10 @@ function bootInter() {
   Inter.add(function addToPool(info) {
     Pool[info.host + ':' + info.port] = info;
   });
+
+  Inter.add(function sendToRoom(roomId, msg) {
+    Network.sendToRoom(roomId, msg);
+  });
 }
 
 function accept(session) {
@@ -96,7 +100,7 @@ function onRooms(msg, session) {
   var sid = session.id;
 
   Room.find(function(err, rooms) {
-    if (err) return Network.send(sid, 'Sorry, an error occured.');
+    if (err) return handleError(sid);
 
     if (!rooms.length) {
       Network.send(sid, 'There are currently no active rooms.');
@@ -126,7 +130,7 @@ function onCreate(msg, session) {
 
   // check if room doesn't exist yet
   Room.findOne({ name: name }, function(err, room) {
-    if (err) return Network.send(sid, 'Sorry, an error occured.');
+    if (err) return handleError(sid);
 
     // room isn't taken yet
     if (!room) {
@@ -136,7 +140,7 @@ function onCreate(msg, session) {
         archive: [],
         operators: []
       }, function(err, room) {
-        if (err) return Network.send(sid, 'Sorry, an error occured.');
+        if (err) return handleError(sid);
         if (room) {
           Network.send(sid, 'Successfully created.');
           Log.success('%s has created [%s] room', nick, name);
@@ -163,7 +167,7 @@ function onJoin(msg, session) {
 
   // validate if room exist
   Room.findOne({ name: room }, function(err, room) {
-    if (err) return Network.send(sid, 'Sorry, an error occured.');
+    if (err) return handleError(sid);
 
     // room is active
     if (room) {
@@ -175,6 +179,10 @@ function onJoin(msg, session) {
     // fallback for unexpected behaviour
     Network.send(sid, 'Sorry, invalid room.');
   });
+}
+
+function handleError(sid) {
+  Network.send(sid, 'Sorry, an error occured.');
 }
 
 /**
