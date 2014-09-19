@@ -203,6 +203,9 @@ function onJoin(msg, session) {
 
   // check if room exists
   if (!!Room.select(room)) {
+    var server = Server.findByRoom(room);
+
+    server.joinRoom(room);
     return;
   }
 

@@ -30,10 +30,15 @@ function start(config) {
   });
 
   Network.add(createRoom);
+  Network.add(joinRoom);
 }
 
 function createRoom(name) {
-  console.log(name);
+  Log.info('created: %s', name);
+}
+
+function joinRoom(room) {
+  Log.info('joined: %s', room);
 }
 
 /**

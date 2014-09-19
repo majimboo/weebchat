@@ -43,15 +43,21 @@ Servers.prototype.pick = function() {
   });
 };
 
-Servers.prototype.setAddress = function(id, host, port) {
-  var server = this.select(id);
-  server.setAddress(host, port);
-};
+Servers.prototype.findByRoom = function(room) {
+  return _.find(this.data, function(server) {
+    return server.findRoom(room) === room;
+  });
+}
 
 Servers.prototype.select = function(id) {
   if (!!id) return this.data[id];
 
   return this.data;
+};
+
+Servers.prototype.setAddress = function(id, host, port) {
+  var server = this.select(id);
+  server.setAddress(host, port);
 };
 
 Servers.prototype.delete = function(id) {
@@ -66,21 +72,29 @@ function Server(id, socket, index) {
   this.id      = id;
   this.name    = null;
   this.index   = index + 1;
-  this.rooms   = {};
+  this.rooms   = {}; // make this the room model
   this.address = null;
 
   // private
-  this._socket  = socket;
-  this._remote  = new kamote.Client();
+  this._socket = socket;
+  this._remote = new kamote.Client();
 }
 
 Server.prototype.roomCount = function() {
   return _.keys(this.rooms).length;
 };
 
+Server.prototype.findRoom = function(room) {
+  return this.rooms[room];
+};
+
 Server.prototype.createRoom = function(room) {
   this.rooms[room] = room;
   this._remote.createRoom(room);
+};
+
+Server.prototype.joinRoom = function(room) {
+  this._remote.joinRoom(room);
 };
 
 Server.prototype.setAddress = function(host, port) {
@@ -98,5 +112,5 @@ Server.prototype.getName = function() {
 }
 
 Server.prototype.startRemote = function() {
-  this._remote.connect(this.address.port, this.address.host);
+  this._remote.reconnect(this.address.port, this.address.host);
 }
