@@ -1,0 +1,7 @@
+Commands:
+
+  /help          - shows this message.
+  /rooms         - shows a list of active rooms.
+  /create <room> - creates a new room.
+  /join <room>   - joins an existing room.
+  /quit          - disconnect from the server.

@@ -4,6 +4,7 @@
 var CMD = require('./structure');
 
 module.exports = {
+  help: CMD.HELP,
   enter: CMD.ENTER,
   rooms: CMD.ROOMS,
   servers: CMD.SERVERS,

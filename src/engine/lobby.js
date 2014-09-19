@@ -14,7 +14,8 @@ var Network = require('../network/manager').init();
 var Log     = require('../utils/log');
 var utils   = require('../utils/helpers');
 
-var Lobby = new kamote.Server();
+var Lobby  = new kamote.Server();
+var MANUAL = utils.loadManual();
 
 /**
  * Starts the engine.
@@ -35,6 +36,7 @@ function start(config) {
   Network.on('new client', accept);
 
   // hooks
+  Network.hookCommand('help', onHelp);
   Network.hookCommand('enter', onEnter);
   Network.hookCommand('rooms', onRooms);
   Network.hookCommand('servers', onServers);
@@ -52,6 +54,17 @@ function start(config) {
 function accept(session) {
   Network.send(session.id, '\nWelcome to the Weeb chat server');
   Network.send(session.id, 'Login Name?');
+}
+
+/**
+ * [onHelp description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
+function onHelp(msg, session) {
+  var sid = session.id;
+  Network.send(sid, MANUAL);
 }
 
 /**

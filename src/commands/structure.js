@@ -3,6 +3,10 @@
 
 var CMD = {};
 
+CMD.HELP = function(msg) {
+  return msg;
+}
+
 CMD.ENTER = function(msg) {
   return {
     name: msg
