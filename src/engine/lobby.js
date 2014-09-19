@@ -65,11 +65,12 @@ function onEnter(msg, session) {
     return Log.success('%s has entered the Lobby', session.realname);
   }
 
-  if (!notTaken) {
-    return Network.send(sid, 'Sorry, name taken.');
-  }
+  if (!notTaken)
+    Network.send(sid, 'Sorry, name taken.');
+  else
+    Network.send(sid, 'Sorry, name is invalid.');
 
-  Network.send(sid, 'Sorry, name is invalid.');
+  Network.send(session.id, 'Login Name?');
 }
 
 function onRooms(msg, session) {

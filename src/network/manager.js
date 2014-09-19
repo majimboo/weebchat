@@ -18,7 +18,7 @@ var sessions = require('./session');
  */
 function Manager(raw) {
   events.EventEmitter.call(this);
-  this.commands = [];
+  this.commands = {};
 
   this.raw = !!raw;
 
@@ -39,14 +39,14 @@ Manager.prototype.listen = function() {
   var server = net.createServer();
   server.listen.apply(server, arguments);
   this.ready(server);
-}
+};
 
 Manager.prototype.ready = function(server) {
   var self = this;
   server.on('connection', function(socket) {
     self.accept(socket);
   });
-}
+};
 
 Manager.prototype.accept = function(socket) {
   // double check connection if it has
@@ -70,7 +70,7 @@ Manager.prototype.accept = function(socket) {
     self.sessions.destroy(session.id);
     Log.success('%s has gone offline', session.realname || session.id);
   });
-}
+};
 
 Manager.prototype.send = function(sid, msg) {
   // get the session
@@ -80,7 +80,7 @@ Manager.prototype.send = function(sid, msg) {
 
   // send msg
   session._socket.write(msg + '\r\n');
-}
+};
 
 Manager.prototype.sendToRoom = function(roomId, msg) {
   var sessions = this.sessions.inRoom(roomId);
@@ -90,7 +90,7 @@ Manager.prototype.sendToRoom = function(roomId, msg) {
   for (var i = 0; i < sessionIds.length; i++) {
     this.send(sessionIds[i], msg);
   }
-}
+};
 
 Manager.prototype.receive = function(data, session) {
   var self = this;
@@ -118,26 +118,30 @@ Manager.prototype.receive = function(data, session) {
     // clean messages
     message = message.replace(/(\r\n|\n|\r)/gm, '');
 
-    // commands
-    if (/^[\/]/.test(message)) {
-      var argv = message.substr(1).split(/[\s,]+/);
-      var command = argv.shift();
-      return self.command_callback(command, argv, session);
-    }
-
+    // should be entry
     if (!session.realname && !session.nickname) {
       return self.command_callback('enter', message, session);
     }
 
-    // fallback to chat
-    self.command_callback('chat', message, session);
+    // commands
+    if (/^[\/]/.test(message)) {
+      var argv = message.substr(1).split(/[\s]+/);
+      var command = argv.shift();
+      return self.command_callback(command, argv, session);
+    }
+
+    // chat only allowed when in room
+    if (session.currentRoom) {
+      return self.command_callback('chat', message, session);
+    }
+
+    self.send(session.id, 'Sorry, invalid request.');
   });
-}
+};
 
 Manager.prototype.command_callback = function(action, message, session) {
-  var command = this.commands[action];
-
-  // TODO check if action is not native_code
+  // also check if action is not native_code
+  var command = this.getCommand(action);
 
   if (!command) {
     this.send(session.id, 'Sorry, invalid command.');
@@ -152,22 +156,29 @@ Manager.prototype.command_callback = function(action, message, session) {
   }
 
   return Log.warn('command [%s] has no registered callback', action);
-}
+};
 
 Manager.prototype.listen_callback = function() {
-  var s = this.address();
-  Log.info('staged on %s:%s', s.address, s.port);
-}
+  Log.info('staged on %s:%s', this.address().address, this.address().port);
+};
+
+Manager.prototype.getCommand = function(action) {
+  if (this.commands.hasOwnProperty(action)) {
+    return this.commands[action];
+  }
+
+  return false;
+};
 
 Manager.prototype.registerCommand = function(cmd, struct) {
   this.commands[cmd] = {};
   this.commands[cmd].struct = struct;
   this.commands[cmd].callback = null;
-}
+};
 
 Manager.prototype.hookCommand = function(cmd, callback) {
   this.commands[cmd].callback = callback;
-}
+};
 
 /**
  * Creates a new weebchat manager.
