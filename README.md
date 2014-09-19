@@ -1,14 +1,46 @@
-weebchat
+weebchat [![Build Status](https://travis-ci.org/majimboo/weebchat.svg?branch=master)](https://travis-ci.org/majimboo/weebchat)
 ========
 
-[![Build Status](https://travis-ci.org/majimboo/weebchat.svg?branch=master)](https://travis-ci.org/majimboo/weebchat)
+A dynamically distributed telnet chat server.
 
-*"Draft"*
+Install
+-------
 
-I was tasked to write a *telnet chat server* that is scalable and production
-ready. The emphasis was on the network architecture and scalability.
+    $ git clone git@github.com:majimboo/weebchat.git
+    $ cd weebchat
+    $ npm install
 
-A good fit for this task is a dynamically distributed server. The basic
-idea is to have a loadbalancer listening on 2 ends, the front and the back.
+Usage
+-----
 
-...to be continued
+Starting the load balancer.
+
+    $ bin/lobby -h
+
+    Usage: lobby [options]
+
+    Options:
+
+      -h, --help           output usage information
+      -V, --version        output the version number
+      -c, --config [path]  path to config
+
+Starting a server.
+
+    $ bin/weebchat -h
+
+    Usage: weebchat [options]
+
+    Options:
+
+      -h, --help           output usage information
+      -V, --version        output the version number
+      -c, --config [path]  path to config
+
+Architecture
+------------
+
+Have a load balancer running and waiting for clients or servers. When you need
+more servers just run a new server on another machine and it automatically gets
+added to the load balancers server pool, ready to pass new clients to the new
+server. No need to restart the balancer.
