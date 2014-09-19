@@ -31,47 +31,15 @@ function start(config) {
   Lobby.listen(config.inter_port, config.inter_host, Network.listen_callback);
   Lobby.on('connection', Server.add.bind(Server));
 
-  roomCleaner();
-
   Network.on('new client', accept);
 
   // hooks
   Network.hookCommand('enter', onEnter);
   Network.hookCommand('rooms', onRooms);
+  Network.hookCommand('servers', onServers);
   Network.hookCommand('create', onCreate);
   Network.hookCommand('join', onJoin);
   Network.hookCommand('chat', onChat);
-}
-
-function bootInter() {
-  Lobby.add('addToPool', function(info) {
-    Log.success('server %s added to pool', info.id);
-  });
-
-  Lobby.add('sendToRoom', function(roomId, msg) {
-    Network.sendToRoom(roomId, msg);
-  });
-
-  Lobby.add('send', function(sid, msg) {
-    Network.send(sid, msg);
-  });
-
-  Lobby.add('store', function(sid, key, val) {
-    var session = Network.sessions.get(sid);
-    session.set(key, val);
-  });
-}
-
-function roomCleaner() {
-  // delete all rooms that the loc is not in the Pool
-  var rooms = Room.select();
-
-  _.each(rooms, function(room) {
-    if (!!room.loc) {
-      room.loc = null;
-      return Log.success('room [%s] deactived', room.name);
-    }
-  });
 }
 
 function accept(session) {
@@ -121,6 +89,27 @@ function onRooms(msg, session) {
   Network.send(sid, 'There are currently no active rooms.');
 }
 
+function onServers(msg, session) {
+  var sid = session.id;
+
+  if (session.realname !== 'admin') {
+    Network.send(sid, 'Permission denied.');
+    return;
+  }
+
+  if (!!Server.count()) {
+    var servers = Server.select();
+    Network.send(sid, 'Active servers are:');
+    _.each(servers, function(server) {
+      Network.send(sid, ' * ' + server.id + ' (' + server.roomCount() + ')');
+    });
+    Network.send(sid, 'end of list.');
+    return;
+  }
+
+  Network.send(sid, 'There are currently no active servers.');
+}
+
 function onCreate(msg, session) {
   var name = msg.name;
   var sid  = session.id;
@@ -137,8 +126,16 @@ function onCreate(msg, session) {
   if (!!Room.select(name)) {
     return Network.send(sid, 'Sorry, name taken.');
   } else {
-    Room.insert(name, { name: name });
-    return Log.success('%s has created [%s] room', nick, name);
+    var server = Server.pick();
+
+    if (!!server) {
+      Room.insert(name, { name: name });
+      server.createRoom(name);
+      return Log.success('%s has created [%s] room', nick, name);
+    }
+
+    Network.send(sid, 'Sorry, no available servers.');
+    return Log.warn('%s failed to create [%s] room', nick, name);
   }
 
   // fallback for unexpected behaviour

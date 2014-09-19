@@ -13,6 +13,10 @@ CMD.ROOMS = function(msg) {
   return msg;
 }
 
+CMD.SERVERS = function(msg) {
+  return msg;
+}
+
 CMD.CREATE = function(msg) {
   return {
     name: msg[0]

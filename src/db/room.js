@@ -12,13 +12,13 @@ module.exports = new Rooms();
 Rooms.prototype.insert = function(id, value) {
   this.data[id] = new Room(value);
   return this.data[id];
-}
+};
 
 Rooms.prototype.select = function(id) {
   if (!!id) return this.data[id];
 
   return this.data;
-}
+};
 
 Rooms.prototype.find = function(obj) {
   var finder = _.pairs(obj)[0];
@@ -28,11 +28,11 @@ Rooms.prototype.find = function(obj) {
   return _.filter(this.data, function(data) {
     return _.isPlainObject(val) ? data[key] === val.not : data[key] !== val;
   });
-}
+};
 
 Rooms.prototype.delete = function(id) {
   delete this.data[id];
-}
+};
 
 // individual
 function Room(data) {
@@ -46,4 +46,4 @@ function Room(data) {
 
 Room.prototype.userCount = function() {
   return _.keys(this.users).length;
-}
+};
