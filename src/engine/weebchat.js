@@ -7,6 +7,8 @@ var Network = new kamote.Server();
 var Remote  = new kamote.Client();
 
 var Log     = require('../utils/log');
+var Room    = require('../models/room');
+var Rooms   = [];
 
 function mongodb_connect(config) {
   mongoose.connect(config, {
@@ -44,7 +46,7 @@ function start(config) {
 
   Network.listen(port, host, function listen_callback() {
     Log.info('staged on %s:%s', host, port);
-    bootNetwork();
+    bootNetwork(config);
   });
 
   // connect to RPC server
@@ -52,7 +54,19 @@ function start(config) {
   bootRemote(config);
 }
 
-function bootNetwork() {
+function bootNetwork(config) {
+  // preload some rooms
+  Room
+  .find({ loc: null })
+  .limit(config.max_rooms)
+  .exec(function(err, rooms) {
+    if (err) return Log.warn(err);
+
+    rooms.forEach(function(room) {
+      makeRoom(config.id, room);
+    });
+  });
+
   Network.add(join);
   Network.add(makeRoom);
 }
@@ -65,7 +79,12 @@ function bootRemote(config) {
     Log.warn('lobby connection lost');
   });
   Remote.on('ready', function() {
-    Remote.addToPool({ host: config.host, port: config.port });
+    Remote.addToPool({
+      id: config.id,
+      address: config.host + ':' + config.port,
+      host: config.host,
+      port: config.port
+    });
   });
 }
 
@@ -73,8 +92,16 @@ function join(msg, session) {
   console.log(session);
 }
 
-function makeRoom(msg, session) {
-  console.log(session);
+function makeRoom(serverId, room) {
+  // activate room
+  Rooms.push(room);
+
+  room.loc = serverId;
+  room.save(function(err) {
+    if (!err) {
+      Log.success('room [%s] activated', room.name);
+    }
+  });
 }
 
 /**

@@ -23,6 +23,8 @@ function main(argv) {
   // default
   config.env = config.env || 'development';
 
+  if (!config.id) throw new Error('id required');
+
   engine.start(config);
 }
 

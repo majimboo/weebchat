@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var _        = require('lodash');
 var kamote   = require('kamote');
 var mongoose = require('mongoose');
 
@@ -49,6 +50,8 @@ function start(config) {
     bootInter();
   });
 
+  roomCleaner();
+
   Network.on('new client', accept);
 
   // hooks
@@ -60,11 +63,31 @@ function start(config) {
 
 function bootInter() {
   Inter.add(function addToPool(info) {
-    Pool[info.host + ':' + info.port] = info;
+    Pool[info.id] = info;
+    Log.success('server %s added to pool', info.id);
   });
 
   Inter.add(function sendToRoom(roomId, msg) {
     Network.sendToRoom(roomId, msg);
+  });
+}
+
+function roomCleaner() {
+  // delete all rooms that the loc is not in the Pool
+  Room.find({ loc: { $ne: null }}, function(err, rooms) {
+    if (err) return Log.warn('room cleanup failed');
+
+    var danglers = _.filter(rooms, function(room) {
+      return Pool[room.loc] === undefined;
+    })
+
+    _.each(danglers, function(room) {
+      // deactive
+      room.loc = null;
+      room.save(function(err) {
+        if (!err) return Log.success('room [%s] deactived', room.name);
+      });
+    });
   });
 }
 
@@ -99,7 +122,7 @@ function onEnter(msg, session) {
 function onRooms(msg, session) {
   var sid = session.id;
 
-  Room.find(function(err, rooms) {
+  Room.find({ loc: { $ne: null }}, function(err, rooms) {
     if (err) return handleError(sid);
 
     if (!rooms.length) {
@@ -138,7 +161,8 @@ function onCreate(msg, session) {
         name: name,
         users: [],
         archive: [],
-        operators: []
+        operators: [],
+        loc: null
       }, function(err, room) {
         if (err) return handleError(sid);
         if (room) {
