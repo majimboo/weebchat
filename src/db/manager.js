@@ -1,3 +1,6 @@
+/**
+ * basic memory store.
+ */
 'use strict';
 
 var DB = {

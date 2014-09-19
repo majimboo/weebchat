@@ -47,7 +47,6 @@ function start(config) {
 
 function bootInter() {
   Inter.add('addToPool', function(info) {
-    DB.setPool(info.id, info);
     Log.success('server %s added to pool', info.id);
   });
 
