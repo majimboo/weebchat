@@ -204,8 +204,10 @@ function onJoin(msg, session) {
   // check if room exists
   if (!!Room.select(room)) {
     var server = Server.findByRoom(room);
+    var remote = server.joinRoom(room);
 
-    server.joinRoom(room);
+    session.setRoom(room);
+    session.setRemote(remote);
     return;
   }
 
@@ -220,11 +222,12 @@ function onJoin(msg, session) {
  * @param  {Object} session - User session that sent the request.
  */
 function onChat(msg, session) {
-  var room = session.get('room');
+  var room = session.getRoom();
   var message = msg.msg;
 
   if (!!room) {
     session._remote.chat(room, message, session);
+    return;
   }
 
   Network.send(session.id, 'Sorry, you are not in any room.');

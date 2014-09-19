@@ -95,6 +95,7 @@ Server.prototype.createRoom = function(room) {
 
 Server.prototype.joinRoom = function(room) {
   this._remote.joinRoom(room);
+  return this._remote;
 };
 
 Server.prototype.setAddress = function(host, port) {

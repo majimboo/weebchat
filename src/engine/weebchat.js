@@ -31,6 +31,7 @@ function start(config) {
 
   Network.add(createRoom);
   Network.add(joinRoom);
+  Network.add(chat);
 }
 
 function createRoom(name) {
@@ -39,6 +40,10 @@ function createRoom(name) {
 
 function joinRoom(room) {
   Log.info('joined: %s', room);
+}
+
+function chat(room, msg, session) {
+  console.log(room, msg, session);
 }
 
 /**

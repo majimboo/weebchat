@@ -131,7 +131,7 @@ Manager.prototype.receive = function(data, session) {
     }
 
     // chat only allowed when in room
-    if (session.currentRoom) {
+    if (session.getRoom()) {
       return self.command_callback('chat', message, session);
     }
 

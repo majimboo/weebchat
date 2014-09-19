@@ -56,6 +56,25 @@ Session.prototype.kick = function() {
   this._socket.destroy();
 };
 
+Session.prototype.setRoom = function(room) {
+  this.currentRoom = room;
+};
+
+Session.prototype.getRoom = function() {
+  return this.currentRoom;
+};
+
+Session.prototype.getRemote = function() {
+  return this._remote;
+};
+
+Session.prototype.setRemote = function(remote) {
+  Object.defineProperty(this, '_remote', {
+    value: remote,
+    configurable: true
+  });
+};
+
 Session.prototype.setName = function(name) {
   return this.nickname = this.realname = name;
 };
