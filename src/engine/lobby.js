@@ -51,6 +51,8 @@ function start(config) {
   // hooks
   Network.hookCommand('enter', onEnter);
   Network.hookCommand('rooms', onRooms);
+  Network.hookCommand('create', onCreate);
+  Network.hookCommand('join', onJoin);
 }
 
 function accept(session) {
@@ -70,7 +72,8 @@ function onEnter(msg, session) {
   if (validName && goodName && notTaken) {
     // set the nickname for the session
     session.setName(name);
-    return Network.send(sid, 'Welcome ' + session.realname + '!');
+    Network.send(sid, 'Welcome ' + session.realname + '!');
+    return Log.success('%s has entered the Lobby', session.realname);
   }
 
   if (!notTaken) {
@@ -97,6 +100,69 @@ function onRooms(msg, session) {
       Network.send(sid, ' * ' + room.name + ' (' + room.users.length + ')');
     }
     Network.send(sid, 'end of list.');
+  });
+}
+
+function onCreate(msg, session) {
+  var name = msg.name;
+  var sid  = session.id;
+  var nick = session.realname;
+
+  if (!name) return Network.send(sid, '/create <room>');
+
+  // validate room name
+  if (!utils.validateName(name)) {
+    return Network.send(sid, 'Sorry, invalid name.');
+  }
+
+  // check if room doesn't exist yet
+  Room.findOne({ name: name }, function(err, room) {
+    if (err) return Network.send(sid, 'Sorry, an error occured.');
+
+    // room isn't taken yet
+    if (!room) {
+      Room.create({
+        name: name,
+        users: [],
+        archive: [],
+        operators: []
+      }, function(err, room) {
+        if (err) return Network.send(sid, 'Sorry, an error occured.');
+        if (room) {
+          Network.send(sid, 'Successfully created.');
+          Log.success('%s has created [%s] room', nick, name);
+          return;
+        }
+
+        // fallback for unexpected behaviour
+        Network.send(sid, 'Sorry, something went wrong.');
+      });
+      return;
+    }
+
+    // room already exists
+    Network.send(sid, 'Sorry, name taken.');
+  });
+}
+
+function onJoin(msg, session) {
+  var room = msg.room;
+  var sid  = session.id;
+
+  // validate params
+  if (!room) return Network.send(sid, '/join <room>');
+
+  // validate if room exist
+  Room.findOne({ name: room }, function(err, room) {
+    if (err) return Network.send(sid, 'Sorry, an error occured.');
+
+    // room found, join
+    if (room) {
+      return;
+    }
+
+    // fallback for unexpected behaviour
+    Network.send(sid, 'Sorry, invalid room.');
   });
 }
 

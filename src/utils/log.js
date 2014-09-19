@@ -35,23 +35,31 @@ function Log(options) {
   this.logger = console.log;
 }
 
-function format(style, type,  argv) {
+Log.prototype.format = function(color, type,  argv, full) {
   var args = Array.prototype.slice.call(argv, 0);
+  var style = styles[color];
   var msg = args.shift();
-  args.unshift(style[0] + type + ':' + style[1] + ' ' + (msg || ''));
+  if (full)
+    args.unshift(style[0] + type + ': ' + (msg || '') + style[1]);
+  else
+    args.unshift(style[0] + type + ':' + style[1] + ' ' + (msg || ''));
   return args;
-}
+};
 
 Log.prototype.info = function() {
-  this.logger.apply(this, format(styles.blue, 'info', arguments));
+  this.logger.apply(this, this.format('blue', 'info', arguments));
+};
+
+Log.prototype.success = function() {
+  this.logger.apply(this, this.format('green', '!!!!', arguments, true));
 };
 
 Log.prototype.debug = function() {
-  this.logger.apply(this, format(styles.cyan, 'debug', arguments));
+  this.logger.apply(this, this.format('cyan', 'dbug', arguments));
 };
 
 Log.prototype.warn = function() {
-  this.logger.apply(this, format(styles.magenta, 'warn', arguments));
+  this.logger.apply(this, this.format('magenta', 'warn', arguments));
 };
 
 Log.prototype.cls = function() {

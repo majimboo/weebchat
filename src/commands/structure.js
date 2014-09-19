@@ -13,4 +13,16 @@ CMD.ROOMS = function(msg) {
   return msg;
 }
 
+CMD.CREATE = function(msg) {
+  return {
+    name: msg[0]
+  }
+}
+
+CMD.JOIN = function(msg) {
+  return {
+    room: msg[0]
+  }
+}
+
 module.exports = CMD;

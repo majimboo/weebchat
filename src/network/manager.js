@@ -130,10 +130,12 @@ Manager.prototype.receive = function(data, session) {
 Manager.prototype.command_callback = function(action, message, session) {
   var command = this.commands[action];
 
+  // TODO check if action is not native_code
+
   if (!command) {
     this.send(session.id, 'Sorry, invalid command.');
     var identity = (session.realname || session.id);
-    return Log.warn('invalid command [%s] from %s', action, identity);
+    return Log.warn('invalid command [%s] invoked by %s', action, identity);
   }
 
   var struct = command.struct(message);
