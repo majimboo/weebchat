@@ -1,41 +1,64 @@
 #!/usr/bin/env node
 'use strict';
 
-function SessionService() {
-  this.sessions = {};
-}
+var kamote   = require('kamote');
+var _sessions = {};
 
-module.exports = new SessionService();
-
-SessionService.prototype.create = function(sessionId, socket) {
-  var session = new Session(sessionId, socket, this);
-
-  this.sessions[session.id] = session;
+function create(sid, socket) {
+  var session = new Session(sid, socket);
+  _sessions[session.id] = session;
 
   return session;
+}
+
+function destroy(sid) {
+  delete _sessions[sid];
+}
+
+function get(sid) {
+  return _sessions[sid];
+}
+
+function getAll() {
+  return _sessions;
+}
+
+module.exports = {
+  create: create,
+  destroy: destroy,
+  get: get,
+  getAll: getAll
 };
 
-SessionService.prototype.destroy = function(sessionId) {
-  delete this.sessions[sessionId];
-};
-
-SessionService.prototype.get = function(sessionId) {
-  return this.sessions[sessionId];
-};
-
-function Session(sid, socket, service) {
+function Session(sid, socket) {
   this.id = sid;
   this.realname = null;
   this.nickname = null;
   this.currentRoom = null;
+  this.settings = {};
 
   // private
-  this.$socket  = socket;
-  this.$service = service;
+  Object.defineProperty(this, '_socket', {
+    value: socket,
+    configurable: true
+  });
+
+  Object.defineProperty(this, '_remote', {
+    value: new kamote.Client(),
+    configurable: true
+  });
 }
 
-Session.prototype.dataCallback = function(callback) {
-  this.$socket.on('data', callback);
+Session.prototype.set = function(setting, value) {
+  this.settings[setting] = value;
+};
+
+Session.prototype.get = function(setting) {
+  return this.settings[setting];
+};
+
+Session.prototype.kick = function() {
+  this._socket.destroy();
 };
 
 Session.prototype.setName = function(name) {

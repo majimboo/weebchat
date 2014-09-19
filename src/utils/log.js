@@ -1,4 +1,7 @@
-#!/usr/bin/env node
+/**
+ * Transport based logging. Allows us to use console.log for
+ * development and database/file logging when in production.
+ */
 'use strict';
 
 var styles = {

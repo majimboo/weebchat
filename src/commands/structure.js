@@ -25,4 +25,10 @@ CMD.JOIN = function(msg) {
   }
 }
 
+CMD.CHAT = function(msg) {
+  return {
+    msg: msg
+  }
+}
+
 module.exports = CMD;

@@ -1,5 +1,6 @@
 'use strict';
 
+var _        = require('lodash');
 var kamote   = require('kamote');
 var mongoose = require('mongoose');
 
@@ -8,7 +9,7 @@ var Remote  = new kamote.Client();
 
 var Log     = require('../utils/log');
 var Room    = require('../models/room');
-var Rooms   = [];
+var Rooms   = {};
 
 function mongodb_connect(config) {
   mongoose.connect(config, {
@@ -27,9 +28,7 @@ function mongodb_connect(config) {
 /**
  * Starts the engine.
  *
- * @param  {String} host - Host to bind to.
- * @param  {Number} port - Port to bind to.
- * @param  {String} env  - Environment to run in.
+ * @param  {Object} config - configs.
  */
 function start(config) {
   var host = config.host;
@@ -46,12 +45,19 @@ function start(config) {
 
   Network.listen(port, host, function listen_callback() {
     Log.info('staged on %s:%s', host, port);
-    bootNetwork(config);
   });
 
   // connect to RPC server
   Remote.reconnect(config.inter_port, config.inter_port);
-  bootRemote(config);
+  Remote.on('connect', function() {
+    Log.info('lobby connection established');
+  });
+  Remote.on('disconnect', function() {
+    Log.warn('lobby connection lost');
+  });
+  Remote.on('ready', function() {
+    bootNetwork(config);
+  });
 }
 
 function bootNetwork(config) {
@@ -62,46 +68,69 @@ function bootNetwork(config) {
   .exec(function(err, rooms) {
     if (err) return Log.warn(err);
 
-    rooms.forEach(function(room) {
+    _.each(rooms, function(room) {
       makeRoom(config.id, room);
     });
+
+    // start remote
+    bootRemote(config);
   });
 
   Network.add(join);
   Network.add(makeRoom);
+  Network.add(chat);
 }
 
 function bootRemote(config) {
-  Remote.on('connect', function() {
-    Log.info('lobby connection established');
-  });
-  Remote.on('disconnect', function() {
-    Log.warn('lobby connection lost');
-  });
-  Remote.on('ready', function() {
-    Remote.addToPool({
-      id: config.id,
-      address: config.host + ':' + config.port,
-      host: config.host,
-      port: config.port
-    });
+  Remote.addToPool({
+    id: config.id,
+    address: config.host + ':' + config.port,
+    host: config.host,
+    port: config.port,
+    rooms: Rooms,
+    max_rooms: config.max_rooms
   });
 }
 
-function join(msg, session) {
-  console.log(session);
+function join(room, session) {
+  var sid = session.id;
+  room = Rooms[room.name];
+
+  Remote.store(sid, 'room', room.name);
+  Remote.send(sid, 'Entering room: ' + room.name);
+  // enter the list
+  room.users.push({ nickname: session.nickname });
+  _.each(room.users, function(user) {
+    if (user.nickname === session.nickname)
+      Remote.send(sid, ' * ' + user.nickname + ' (** this is you)');
+    else
+      Remote.send(sid, ' * ' + user.nickname);
+  });
+  room.save();
+  Remote.send(sid, 'end of list.');
+
+  Log.success('%s has joined [%s] room', session.nickname, room.name);
 }
 
 function makeRoom(serverId, room) {
-  // activate room
-  Rooms.push(room);
+  Rooms[room.name] = null;
 
-  room.loc = serverId;
-  room.save(function(err) {
+  // activate room
+  Room.findOneAndUpdate({
+    name: room.name
+  }, {
+    loc: serverId
+  }, function(err, room) {
     if (!err) {
       Log.success('room [%s] activated', room.name);
     }
+
+    Rooms[room.name] = room;
   });
+}
+
+function chat(room, message, session) {
+  console.log(room);
 }
 
 /**

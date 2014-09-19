@@ -9,6 +9,7 @@ var mongoose = require('mongoose');
 
 var Network = require('../network/manager').init();
 var Room    = require('../models/room');
+var User    = require('../models/user');
 var Pool    = {};
 
 var Log     = require('../utils/log');
@@ -30,6 +31,11 @@ function mongodb_connect(config) {
   return conn;
 }
 
+/**
+ * Starts the engine.
+ *
+ * @param  {Object} config - configs.
+ */
 function start(config) {
   Log.info('booting in %s', config.env);
 
@@ -59,16 +65,26 @@ function start(config) {
   Network.hookCommand('rooms', onRooms);
   Network.hookCommand('create', onCreate);
   Network.hookCommand('join', onJoin);
+  Network.hookCommand('chat', onChat);
 }
 
 function bootInter() {
-  Inter.add(function addToPool(info) {
+  Inter.add('addToPool', function(info) {
     Pool[info.id] = info;
     Log.success('server %s added to pool', info.id);
   });
 
-  Inter.add(function sendToRoom(roomId, msg) {
+  Inter.add('sendToRoom', function(roomId, msg) {
     Network.sendToRoom(roomId, msg);
+  });
+
+  Inter.add('send', function(sid, msg) {
+    Network.send(sid, msg);
+  });
+
+  Inter.add('store', function(sid, key, val) {
+    var session = Network.sessions.get(sid);
+    session.set(key, val);
   });
 }
 
@@ -122,6 +138,8 @@ function onEnter(msg, session) {
 function onRooms(msg, session) {
   var sid = session.id;
 
+  if (!session.realname) return notAllowed(sid);
+
   Room.find({ loc: { $ne: null }}, function(err, rooms) {
     if (err) return handleError(sid);
 
@@ -167,6 +185,17 @@ function onCreate(msg, session) {
         if (err) return handleError(sid);
         if (room) {
           Network.send(sid, 'Successfully created.');
+
+          var server = _.find(Pool, function(server) {
+            return Object.keys(server.rooms).length < server.max_rooms;
+          });
+
+          // create new Remote connection
+          session._remote.connect(server.port, server.host);
+          session._remote.on('ready', function() {
+            session._remote.makeRoom(server.id, room);
+          });
+
           Log.success('%s has created [%s] room', nick, name);
           return;
         }
@@ -185,18 +214,29 @@ function onCreate(msg, session) {
 function onJoin(msg, session) {
   var room = msg.room;
   var sid  = session.id;
+  var nick = session.realname;
 
   // validate params
   if (!room) return Network.send(sid, '/join <room>');
 
   // validate if room exist
-  Room.findOne({ name: room }, function(err, room) {
+  Room.findOne({ name: room, loc: { $ne: null }}, function(err, room) {
     if (err) return handleError(sid);
 
     // room is active
     if (room) {
       // find room server
+      var server = _.find(Pool, function(server) {
+        return _.find(server.rooms, function(rooms, key) {
+          return key === room.name;
+        }) !== undefined;
+      });
 
+      // create new Remote connection
+      session._remote.connect(server.port, server.host);
+      session._remote.on('ready', function() {
+        session._remote.join(room, session);
+      });
       return;
     }
 
@@ -205,8 +245,23 @@ function onJoin(msg, session) {
   });
 }
 
+function onChat(msg, session) {
+  var room = session.get('room');
+  var message = msg.msg;
+
+  if (!!room) {
+    session._remote.chat(room, message, session);
+  }
+
+  Network.send(session.id, 'Sorry, you are not in any room.');
+}
+
 function handleError(sid) {
   Network.send(sid, 'Sorry, an error occured.');
+}
+
+function notAllowed(sid) {
+  Network.send(sid, 'Sorry, request not available here.');
 }
 
 /**

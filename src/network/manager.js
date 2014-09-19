@@ -8,7 +8,7 @@ var registry = require('../commands/registry');
 
 var Log = require('../utils/log');
 var _   = require('lodash');
-var SessionService = require('./session');
+var sessions = require('./session');
 
 /**
  * The network manager.
@@ -23,7 +23,7 @@ function Manager(raw) {
   this.raw = !!raw;
 
   // expose sessions
-  this.sessions = SessionService;
+  this.sessions = sessions;
 
   // initialize encryptions
 }
@@ -61,12 +61,12 @@ Manager.prototype.accept = function(socket) {
   this.emit('new client', session);
 
   // frame all incoming stream
-  socket.on('data', function(data) {
+  session._socket.on('data', function(data) {
     self.receive(data, session);
   });
 
   // destroy session if socket is gone
-  socket.on('end', function() {
+  session._socket.on('end', function() {
     self.sessions.destroy(session.id);
     Log.success('%s has gone offline', session.realname || session.id);
   });
@@ -79,7 +79,7 @@ Manager.prototype.send = function(sid, msg) {
   // encrypt message
 
   // send msg
-  session.$socket.write(msg + '\r\n');
+  session._socket.write(msg + '\r\n');
 }
 
 Manager.prototype.sendToRoom = function(roomId, msg) {

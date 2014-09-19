@@ -7,5 +7,6 @@ module.exports = {
   enter: CMD.ENTER,
   rooms: CMD.ROOMS,
   create: CMD.CREATE,
-  join: CMD.JOIN
+  join: CMD.JOIN,
+  chat: CMD.CHAT
 }
