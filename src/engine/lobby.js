@@ -7,11 +7,13 @@ var kamote   = require('kamote');
 var mongoose = require('mongoose');
 
 var Network = require('../network/manager').init();
-var Log     = require('../utils/log');
 var Room    = require('../models/room');
+var Pool    = {};
+
+var Log     = require('../utils/log');
 var utils   = require('../utils/helpers');
 
-var Inter = new kamote.Server();
+var Inter  = new kamote.Server();
 
 function mongodb_connect(config) {
   mongoose.connect(config, {
@@ -33,7 +35,7 @@ function start(config) {
   // connect to mongodb
   var mongodb = mongodb_connect(config.db);
   mongodb.on('connected', function() {
-    Log.info('successfully established database connection');
+    Log.info('database connection established');
   });
 
   // frontend
@@ -44,6 +46,7 @@ function start(config) {
   // backend
   Inter.listen(config.inter_port, config.inter_host, function() {
     Log.info('staged on %s:%s', config.inter_host, config.inter_port);
+    bootInter();
   });
 
   Network.on('new client', accept);
@@ -53,6 +56,12 @@ function start(config) {
   Network.hookCommand('rooms', onRooms);
   Network.hookCommand('create', onCreate);
   Network.hookCommand('join', onJoin);
+}
+
+function bootInter() {
+  Inter.add(function addToPool(info) {
+    Pool[info.host + ':' + info.port] = info;
+  });
 }
 
 function accept(session) {
@@ -156,8 +165,10 @@ function onJoin(msg, session) {
   Room.findOne({ name: room }, function(err, room) {
     if (err) return Network.send(sid, 'Sorry, an error occured.');
 
-    // room found, join
+    // room is active
     if (room) {
+      // find room server
+
       return;
     }
 

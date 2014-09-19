@@ -15,6 +15,10 @@ SessionService.prototype.create = function(sessionId, socket) {
   return session;
 };
 
+SessionService.prototype.destroy = function(sessionId) {
+  delete this.sessions[sessionId];
+};
+
 SessionService.prototype.get = function(sessionId) {
   return this.sessions[sessionId];
 };

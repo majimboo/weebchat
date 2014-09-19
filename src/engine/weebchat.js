@@ -1,11 +1,12 @@
 'use strict';
 
+var kamote   = require('kamote');
 var mongoose = require('mongoose');
 
-var Network = require('../network/manager').init();
+var Network = new kamote.Server();
+var Remote  = new kamote.Client();
+
 var Log     = require('../utils/log');
-var Room    = require('../models/room');
-var utils   = require('../utils/helpers');
 
 function mongodb_connect(config) {
   mongoose.connect(config, {
@@ -38,65 +39,42 @@ function start(config) {
   // connect to mongodb
   var mongodb = mongodb_connect('mongodb://localhost/qchat_test');
   mongodb.on('connected', function() {
-    Log.info('successfully established database connection');
+    Log.info('database connection established');
   });
 
   Network.listen(port, host, function listen_callback() {
     Log.info('staged on %s:%s', host, port);
+    bootNetwork();
   });
 
-  Network.on('new client', accept);
-
-  // hooks
-  Network.hookCommand('enter', onEnter);
-  Network.hookCommand('rooms', onRooms);
+  // connect to RPC server
+  Remote.reconnect(config.inter_port, config.inter_port);
+  bootRemote(config);
 }
 
-function accept(session) {
-  Network.send(session.id, '\nWelcome to the Weeb chat server');
-  Network.send(session.id, 'Login Name?');
+function bootNetwork() {
+  Network.add(join);
+  Network.add(makeRoom);
 }
 
-function onEnter(msg, session) {
-  var name = msg.name;
-  var sid  = session.id;
-
-  // validate name
-  var validName = utils.validateName(name);
-  var goodName  = true;
-  var notTaken  = true;
-
-  if (validName && goodName && notTaken) {
-    // set the nickname for the session
-    session.setName(name);
-    return Network.send(sid, 'Welcome ' + session.realname + '!');
-  }
-
-  if (!notTaken) {
-    return Network.send(sid, 'Sorry, name taken.');
-  }
-
-  Network.send(sid, 'Sorry, name is invalid.');
-}
-
-function onRooms(msg, session) {
-  var sid = session.id;
-
-  Room.find(function(err, rooms) {
-    if (err) return Network.send(sid, 'Sorry, an error occured.');
-
-    if (!rooms.length) {
-      Network.send(sid, 'There are currently no active rooms.');
-      return;
-    }
-
-    Network.send(sid, 'Active rooms are:');
-    for (var i = 0; i < rooms.length; i++) {
-      var room = rooms[i];
-      Network.send(sid, ' * ' + room.name + ' (' + room.users.length + ')');
-    }
-    Network.send(sid, 'end of list.');
+function bootRemote(config) {
+  Remote.on('connect', function() {
+    Log.info('lobby connection established');
   });
+  Remote.on('disconnect', function() {
+    Log.warn('lobby connection lost');
+  });
+  Remote.on('ready', function() {
+    Remote.addToPool({ host: config.host, port: config.port });
+  });
+}
+
+function join(msg, session) {
+  console.log(session);
+}
+
+function makeRoom(msg, session) {
+  console.log(session);
 }
 
 /**

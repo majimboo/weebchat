@@ -1,5 +1,5 @@
 host: 127.0.0.1
-port: 9399
+port: 7001
 
 # intercom
 inter_host: 127.0.0.1
@@ -8,9 +8,5 @@ inter_port: 7000
 # mongo connection
 db: mongodb://localhost/qchat_test
 
-# invalid names
-invalid_names:
-  - admin
-
 # settings
-max_users: 10
+max_rooms: 10

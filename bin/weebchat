@@ -9,10 +9,7 @@ var YAML    = require('yamljs');
 
 program
   .version(project.version)
-  .option('-p, --port [port]', 'the port to bind to')
-  .option('-b, --host [host]', 'set the host to bind to')
-  .option('-e, --env [environment]', 'set environment to execute in')
-  .option('-c, --config [path]', 'path to the config file to be used')
+  .option('-c, --config [path]', 'path to config', './config/weebchat.yml')
   .parse(process.argv);
 
 /**
@@ -21,15 +18,10 @@ program
  * @param {Object} argv - Arguments for the server to start with.
  */
 function main(argv) {
-  var config = {
-    host: argv.host || '0.0.0.0',
-    port: argv.port || 9399,
-    env:  argv.env  || 'development'
-  }
+  var config = YAML.load(argv.config);
 
-  if (argv.config) {
-    config = YAML.load(argv.config);
-  }
+  // default
+  config.env = config.env || 'development';
 
   engine.start(config);
 }
