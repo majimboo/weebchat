@@ -14,7 +14,7 @@ var Network = require('../network/manager').init();
 var Log     = require('../utils/log');
 var utils   = require('../utils/helpers');
 
-var Lobby  = new kamote.Server();
+var Lobby = new kamote.Server();
 
 /**
  * Starts the engine.
@@ -29,6 +29,7 @@ function start(config) {
 
   // backend
   Lobby.listen(config.inter_port, config.inter_host, Network.listen_callback);
+  Lobby.add('setAddress', Server.setAddress.bind(Server));
   Lobby.on('connection', Server.add.bind(Server));
 
   Network.on('new client', accept);
@@ -40,6 +41,7 @@ function start(config) {
   Network.hookCommand('create', onCreate);
   Network.hookCommand('join', onJoin);
   Network.hookCommand('chat', onChat);
+  Network.hookCommand('quit', onQuit);
 }
 
 function accept(session) {
@@ -100,8 +102,8 @@ function onServers(msg, session) {
   if (!!Server.count()) {
     var servers = Server.select();
     Network.send(sid, 'Active servers are:');
-    _.each(servers, function(server) {
-      Network.send(sid, ' * ' + server.id + ' (' + server.roomCount() + ')');
+    _.each(servers, function(sv) {
+      Network.send(sid, ' * ' + sv.getName() + ' (' + sv.roomCount() + ')');
     });
     Network.send(sid, 'end of list.');
     return;
@@ -167,6 +169,10 @@ function onChat(msg, session) {
   }
 
   Network.send(session.id, 'Sorry, you are not in any room.');
+}
+
+function onQuit(msg, session) {
+  session.kick();
 }
 
 function handleError(sid) {

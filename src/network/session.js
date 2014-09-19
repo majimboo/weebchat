@@ -42,11 +42,6 @@ function Session(sid, socket) {
     value: socket,
     configurable: true
   });
-
-  Object.defineProperty(this, '_remote', {
-    value: new kamote.Client(),
-    configurable: true
-  });
 }
 
 Session.prototype.set = function(setting, value) {

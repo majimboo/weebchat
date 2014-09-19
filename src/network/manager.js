@@ -66,7 +66,7 @@ Manager.prototype.accept = function(socket) {
   });
 
   // destroy session if socket is gone
-  session._socket.on('end', function() {
+  session._socket.on('close', function() {
     self.sessions.destroy(session.id);
     Log.success('%s has gone offline', session.realname || session.id);
   });

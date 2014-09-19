@@ -9,5 +9,6 @@ module.exports = {
   servers: CMD.SERVERS,
   create: CMD.CREATE,
   join: CMD.JOIN,
-  chat: CMD.CHAT
+  chat: CMD.CHAT,
+  quit: CMD.QUIT
 }

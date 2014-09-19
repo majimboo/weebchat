@@ -35,4 +35,8 @@ CMD.CHAT = function(msg) {
   }
 }
 
+CMD.QUIT = function(msg) {
+  return msg;
+}
+
 module.exports = CMD;
