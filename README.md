@@ -3,8 +3,13 @@ weebchat [![Build Status](https://travis-ci.org/majimboo/weebchat.svg?branch=mas
 
 A dynamically distributed telnet chat server.
 
-Install
--------
+Requirements
+------------
+
+  - Install [zmq](http://zeromq.org/intro:get-the-software) package first.
+
+Installation
+------------
 
     $ git clone git@github.com:majimboo/weebchat.git
     $ cd weebchat
