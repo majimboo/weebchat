@@ -20,7 +20,7 @@ Servers.prototype.add = function(socket) {
   var server = this.data[id] = new Server(id, socket, this.count());
 
   // delete self on lost connection
-  server._socket.on('end', function() {
+  server.socket.on('end', function() {
     Log.warn('lost connection from server [%s]', server.index);
     self.delete(id);
   });
@@ -46,7 +46,7 @@ Servers.prototype.findByRoom = function(room) {
   return _.find(this.data, function(server) {
     return server.findRoom(room) === room;
   });
-}
+};
 
 Servers.prototype.select = function(id) {
   if (!!id) return this.data[id];
@@ -76,9 +76,8 @@ function Server(id, socket, index) {
   this.rooms    = {}; // make this the room model
   this.maxRooms = 50;
 
-  // private
-  Object.defineProperty(this, '_socket', { value: socket });
-  Object.defineProperty(this, '_remote', { value: new RPC.Client() });
+  this.socket = socket;
+  this.remote = new RPC.Client();
 }
 
 Server.prototype.isNotFull = function() {
@@ -87,10 +86,6 @@ Server.prototype.isNotFull = function() {
 
 Server.prototype.setMaxRooms = function(size) {
   this.maxRooms = size;
-};
-
-Server.prototype.remote = function() {
-  return this._remote;
 };
 
 Server.prototype.roomCount = function() {
@@ -103,17 +98,20 @@ Server.prototype.findRoom = function(room) {
 
 Server.prototype.createRoom = function(room) {
   this.rooms[room] = room;
-  this.remote().createRoom(room);
+  this.remote.createRoom(room, function callback(a, b) {
+    console.log(a);
+    console.log(b);
+  });
 };
 
 Server.prototype.joinRoom = function(room) {
-  this.remote().joinRoom(room);
-  return this.remote();
+  this.remote.joinRoom(room);
+  return this.remote;
 };
 
 Server.prototype.setAddress = function(host, port) {
   Object.defineProperty(this, 'address', { value: { host: host, port: port } });
-  this._remote.reconnect(port, host);
+  this.remote.reconnect(port, host);
 };
 
 Server.prototype.getName = function() {

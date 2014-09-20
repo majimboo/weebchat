@@ -33,7 +33,7 @@ function start(config) {
   Lobby.add('setAddress', Server.setAddress.bind(Server));
   Lobby.on('connection', Server.add.bind(Server));
 
-  Network.on('new client', accept);
+  Network.on('new client', onNewClient);
 
   // hooks
   Network.hookCommand('help', onHelp);
@@ -47,11 +47,11 @@ function start(config) {
 }
 
 /**
- * [accept description]
+ * [onNewClient description]
  *
  * @param  {Object} session - User session that sent the request.
  */
-function accept(session) {
+function onNewClient(session) {
   Network.send(session.id, '\u001B[2J\u001B[fWelcome to the Weeb chat server');
   Network.send(session.id, 'Login Name?');
 }

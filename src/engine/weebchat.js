@@ -34,8 +34,10 @@ function start(config) {
   Network.add(chat);
 }
 
-function createRoom(name) {
+function createRoom(name, callback) {
   Log.info('created: %s', name);
+
+  callback('A', 'B');
 }
 
 function joinRoom(room) {

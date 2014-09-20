@@ -3,7 +3,7 @@
  */
 'use strict';
 
-var net = require('net');
+var net  = require('net');
 
 var clients = {};
 var nicknames = [];
