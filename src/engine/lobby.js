@@ -202,18 +202,27 @@ function onJoin(msg, session) {
   // validate params
   if (!room) return Network.send(sid, '/join <room>');
 
-  // check if room exists
-  if (!!Room.select(room)) {
-    var server = Server.findByRoom(room);
-    var remote = server.joinRoom(room);
-
-    session.setRoom(room);
-    session.setRemote(remote);
+  // cannot join while in room
+  if (session.getRoom()) {
+    Network.send(sid, 'Sorry, you must leave before joining another room.');
     return;
   }
 
-  // fallback for unexpected behaviour
-  Network.send(sid, 'Sorry, invalid room.');
+  // check if room exists
+  Server.findRoom(room, function(result) {
+    if (result && result.length) {
+      Server.findByRoom(room, function(server) {
+        var remote = server.joinRoom(room);
+
+        session.setRoom(room);
+        session.setRemote(remote);
+      });
+      return;
+    }
+
+    // fallback for unexpected behaviour
+    Network.send(sid, 'Sorry, invalid room.');
+  });
 }
 
 /**

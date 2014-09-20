@@ -38,12 +38,6 @@ Servers.prototype.indexOf = function(id) {
   return _.keys(this.data).indexOf(id) + 1;
 };
 
-Servers.prototype.findByRoom = function(room) {
-  return _.find(this.data, function(server) {
-    return server.findRoom(room) === room;
-  });
-};
-
 Servers.prototype.select = function(id) {
   if (!!id) return this.data[id];
 
@@ -79,6 +73,7 @@ Servers.prototype.findRoom = function(room, callback) {
       return result !== null;
     });
   }).then(function(results) {
+    // shouldnt be an array
     callback(results);
   });
 }
@@ -97,6 +92,23 @@ Servers.prototype.pick = function(callback) {
     }
 
     callback(servers[idx])
+  });
+};
+
+Servers.prototype.findByRoom = function(room, callback) {
+  var servers = _.toArray(this.data);
+  Promise.map(servers, function(server) {
+    return server.findRoom(room);
+  }).then(function(results) {
+    var idx = _.findIndex(results, function(result) {
+      return result !== null;
+    });
+
+    if (idx === -1) {
+      return callback(null);
+    }
+
+    callback(servers[idx]);
   });
 };
 
