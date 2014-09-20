@@ -1,6 +1,6 @@
-#!/usr/bin/env node
 'use strict';
 
+var _ = require('lodash');
 var _sessions = {};
 
 function create(sid, socket) {
@@ -22,11 +22,18 @@ function getAll() {
   return _sessions;
 }
 
+function inRoom(room) {
+  return _.filter(_sessions, function(session) {
+    return session.getRoom() === room;
+  });
+}
+
 module.exports = {
   create: create,
   destroy: destroy,
   get: get,
-  getAll: getAll
+  getAll: getAll,
+  inRoom: inRoom
 };
 
 function Session(sid, socket) {

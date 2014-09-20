@@ -39,6 +39,10 @@ CMD.CHAT = function(msg) {
   }
 }
 
+CMD.LEAVE = function(msg) {
+  return msg;
+}
+
 CMD.QUIT = function(msg) {
   return msg;
 }

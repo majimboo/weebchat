@@ -62,7 +62,7 @@ function joinRoom(room) {
 }
 
 function chat(room, msg, session) {
-  console.log(room, msg, session);
+  Remote.sendToRoom(room, session.nickname + ': ' + msg);
 }
 
 /**

@@ -78,14 +78,14 @@ Manager.prototype.send = function(sid, msg) {
   session._socket.write(msg + '\r\n');
 };
 
-Manager.prototype.sendToRoom = function(roomId, msg) {
-  var sessions = this.sessions.inRoom(roomId);
-  var sessionIds = Object.keys(sessions);
+Manager.prototype.sendToRoom = function(room, msg) {
+  var self = this;
+  var sessions = this.sessions.inRoom(room);
 
   // send msg to all
-  for (var i = 0; i < sessionIds.length; i++) {
-    this.send(sessionIds[i], msg);
-  }
+  _.each(sessions, function(session) {
+    self.send(session.id, msg);
+  });
 };
 
 Manager.prototype.receive = function(data, session) {

@@ -11,5 +11,6 @@ module.exports = {
   create: CMD.CREATE,
   join: CMD.JOIN,
   chat: CMD.CHAT,
+  leave: CMD.LEAVE,
   quit: CMD.QUIT
 }

@@ -29,7 +29,11 @@ function start(config) {
 
   // backend
   Lobby.listen(config.inter_port, config.inter_host, Network.listen_callback);
-  Lobby.add('setAddress', Server.setAddress.bind(Server));
+  Lobby.def({
+    send: Network.send.bind(Network),
+    sendToRoom: Network.sendToRoom.bind(Network),
+    setAddress: Server.setAddress.bind(Server)
+  });
   Lobby.on('connection', Server.add.bind(Server));
 
   Network.on('new client', onNewClient);
@@ -42,6 +46,7 @@ function start(config) {
   Network.hookCommand('create', onCreate);
   Network.hookCommand('join', onJoin);
   Network.hookCommand('chat', onChat);
+  Network.hookCommand('leave', onLeave);
   Network.hookCommand('quit', onQuit);
 }
 
@@ -235,12 +240,20 @@ function onChat(msg, session) {
   var room = session.getRoom();
   var message = msg.msg;
 
-  if (!!room) {
-    session._remote.chat(room, message, session);
-    return;
-  }
+  if (room) return session.getRemote().chat(room, message, session);
 
   Network.send(session.id, 'Sorry, you are not in any room.');
+}
+
+/**
+ * [onLeave description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
+function onLeave(msg, session) {
+  // remove room
+  session.setRoom(null);
 }
 
 /**
