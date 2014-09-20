@@ -4,17 +4,17 @@
 'use strict';
 
 var _      = require('lodash');
-var kamote = require('kamote');
 
 var Room   = require('../db/room');
 var User   = require('../db/user');
 var Server = require('../db/server');
 
 var Network = require('../network/manager').init();
+var RPC     = require('../network/remote');
 var Log     = require('../utils/log');
 var utils   = require('../utils/helpers');
 
-var Lobby  = new kamote.Server();
+var Lobby  = new RPC.Server();
 var MANUAL = utils.loadManual();
 
 /**

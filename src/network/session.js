@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-var kamote   = require('kamote');
 var _sessions = {};
 
 function create(sid, socket) {

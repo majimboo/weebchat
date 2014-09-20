@@ -1,10 +1,10 @@
 'use strict';
 
-var _        = require('lodash');
-var kamote   = require('kamote');
+var _   = require('lodash');
+var RPC = require('../network/remote');
 
-var Network = new kamote.Server();
-var Remote  = new kamote.Client();
+var Network = new RPC.Server();
+var Remote  = new RPC.Client();
 
 var Log     = require('../utils/log');
 

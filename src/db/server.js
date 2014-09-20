@@ -3,9 +3,9 @@
 var DB = require('./manager').servers;
 var _  = require('lodash');
 
-var Room   = require('./room');
-var kamote = require('kamote');
-var Log    = require('../utils/log');
+var Room = require('./room');
+var RPC  = require('../network/remote');
+var Log  = require('../utils/log');
 
 function Servers() {
   this.data = DB;
@@ -78,7 +78,7 @@ function Server(id, socket, index) {
 
   // private
   Object.defineProperty(this, '_socket', { value: socket });
-  Object.defineProperty(this, '_remote', { value: new kamote.Client() });
+  Object.defineProperty(this, '_remote', { value: new RPC.Client() });
 }
 
 Server.prototype.isNotFull = function() {

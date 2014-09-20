@@ -34,8 +34,9 @@
   },
   "dependencies": {
     "commander": "^2.3.0",
-    "kamote": "git+https://github.com/majimboo/kamote.git",
     "lodash": "^2.4.1",
+    "msgpack": "^0.2.4",
+    "stream-frame": "0.0.3",
     "yamljs": "^0.2.0"
   }
 }
