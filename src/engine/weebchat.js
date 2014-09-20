@@ -1,12 +1,13 @@
 'use strict';
 
 var _   = require('lodash');
-var RPC = require('../network/remote');
+
+var Room = require('../db/room');
+var Log  = require('../utils/log');
+var RPC  = require('../network/remote');
 
 var Network = new RPC.Server();
 var Remote  = new RPC.Client();
-
-var Log     = require('../utils/log');
 
 /**
  * Starts the engine.
@@ -29,15 +30,31 @@ function start(config) {
     Remote.setAddress(Remote.id, config.host, config.port, config.max_rooms);
   });
 
+  Network.add(findRoom);
+  Network.add(findRooms);
+  Network.add(roomCount);
   Network.add(createRoom);
   Network.add(joinRoom);
   Network.add(chat);
 }
 
-function createRoom(name, callback) {
-  Log.info('created: %s', name);
+function findRoom(room, callback) {
+  callback(Room.select(room));
+}
 
-  callback('A', 'B');
+function findRooms(callback) {
+  callback(Room.select());
+}
+
+function roomCount(callback) {
+  callback(Room.select().length);
+}
+
+function createRoom(name, callback) {
+  Room.insert(name, { name: name });
+  callback(true);
+
+  Log.success('room [%s] created ', name);
 }
 
 function joinRoom(room) {

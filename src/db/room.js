@@ -17,7 +17,7 @@ Rooms.prototype.insert = function(id, value) {
 Rooms.prototype.select = function(id) {
   if (!!id) return this.data[id];
 
-  return this.data;
+  return _.toArray(this.data);
 };
 
 Rooms.prototype.find = function(obj) {

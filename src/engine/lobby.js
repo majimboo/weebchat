@@ -5,7 +5,6 @@
 
 var _      = require('lodash');
 
-var Room   = require('../db/room');
 var User   = require('../db/user');
 var Server = require('../db/server');
 
@@ -108,18 +107,19 @@ function onRooms(msg, session) {
 
   if (!session.realname) return notAllowed(sid);
 
-  var rooms = Room.find({ loc: { not: null } });
+  Server.findRooms(function(rooms) {
+    if (!!rooms && !!rooms.length) {
+      Network.send(sid, 'Active rooms are:');
+      _.each(rooms, function(room) {
+        var userCount = '(' + _.keys(room.users).length + ')';
+        Network.send(sid, ' * ' + room.name + ' ' + userCount);
+      });
+      Network.send(sid, 'end of list.');
+      return;
+    }
 
-  if (!!rooms.length) {
-    Network.send(sid, 'Active rooms are:');
-    _.each(rooms, function(room) {
-      Network.send(sid, ' * ' + room.name + ' (' + room.userCount() + ')');
-    });
-    Network.send(sid, 'end of list.');
-    return;
-  }
-
-  Network.send(sid, 'There are currently no active rooms.');
+    Network.send(sid, 'There are currently no active rooms.');
+  });
 }
 
 /**
@@ -168,24 +168,25 @@ function onCreate(msg, session) {
     return Network.send(sid, 'Sorry, invalid name.');
   }
 
-  // check if room doesn't exist yet
-  if (!!Room.select(name)) {
-    return Network.send(sid, 'Sorry, name taken.');
-  } else {
-    var server = Server.pick();
+  Server.findRoom(name, function(result) {
+    // check if room doesn't exist yet
+    if (result && result.length) {
+      return Network.send(sid, 'Sorry, name taken.');
+    } else {
+      Server.pick(function(server) {
+        if (!server) {
+          Network.send(sid, 'Sorry, no available servers.');
+          return Log.warn('%s failed to create [%s] room', nick, name);
+        }
 
-    if (!!server) {
-      Room.insert(name, { name: name });
-      server.createRoom(name);
-      return Log.success('%s has created [%s] room', nick, name);
+        server.createRoom(name, function(done) {
+          if (done) {
+            return Log.success('%s has created [%s] room', nick, name);
+          }
+        });
+      });
     }
-
-    Network.send(sid, 'Sorry, no available servers.');
-    return Log.warn('%s failed to create [%s] room', nick, name);
-  }
-
-  // fallback for unexpected behaviour
-  Network.send(sid, 'Sorry, something went wrong.');
+  });
 }
 
 /**

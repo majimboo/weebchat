@@ -69,7 +69,7 @@ Client.prototype.$invoker = function(methodName) {
   var params = _.toArray(arguments);
 
   var nargs = _.map(params, function(param) {
-    if (_.isFunction(param) && param.name === 'callback') {
+    if (_.isFunction(param)) {
       self[methodName].callback = param;
       return 'callback:' + methodName;
     }

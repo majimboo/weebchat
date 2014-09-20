@@ -7,6 +7,8 @@ var Room = require('./room');
 var RPC  = require('../network/remote');
 var Log  = require('../utils/log');
 
+var Promise = require('bluebird');
+
 function Servers() {
   this.data = DB;
 }
@@ -36,12 +38,6 @@ Servers.prototype.indexOf = function(id) {
   return _.keys(this.data).indexOf(id) + 1;
 };
 
-Servers.prototype.pick = function() {
-  return _.find(this.data, function(server) {
-    return server.isNotFull();
-  });
-};
-
 Servers.prototype.findByRoom = function(room) {
   return _.find(this.data, function(server) {
     return server.findRoom(room) === room;
@@ -66,6 +62,44 @@ Servers.prototype.delete = function(id) {
   delete this.data[id];
 };
 
+// new stuff
+Servers.prototype.findRooms = function(callback) {
+  Promise.map(_.toArray(this.data), function(server) {
+    return server.findRooms();
+  }).then(_.flatten).then(function(results) {
+    callback(results);
+  });
+}
+
+Servers.prototype.findRoom = function(room, callback) {
+  Promise.map(_.toArray(this.data), function(server) {
+    return server.findRoom(room);
+  }).then(function(results) {
+    return _.filter(results, function(result) {
+      return result !== null;
+    });
+  }).then(function(results) {
+    callback(results);
+  });
+}
+
+Servers.prototype.pick = function(callback) {
+  var servers = _.toArray(this.data);
+  Promise.map(servers, function(server) {
+    return server.roomCount();
+  }).then(function(result) {
+    var idx = _.findIndex(result, function(population) {
+      return population < 1;
+    });
+
+    if (idx === -1) {
+      return callback(null);
+    }
+
+    callback(servers[idx])
+  });
+};
+
 // individual
 function Server(id, socket, index) {
   // required
@@ -73,35 +107,46 @@ function Server(id, socket, index) {
 
   this.id       = id;
   this.index    = index + 1;
-  this.rooms    = {}; // make this the room model
   this.maxRooms = 50;
 
-  this.socket = socket;
-  this.remote = new RPC.Client();
+  Object.defineProperty(this, 'socket', { value: socket });
+  Object.defineProperty(this, 'remote', { value: new RPC.Client() });
 }
 
-Server.prototype.isNotFull = function() {
-  return this.roomCount() < this.maxRooms;
+// new stuff
+Server.prototype.findRooms = function() {
+  var self = this;
+  return new Promise(function(onFulfilled, onRejected) {
+    self.remote.findRooms(function(result) {
+      if (result) onFulfilled(result);
+    });
+  });
+};
+
+Server.prototype.findRoom = function(room) {
+  var self = this;
+  return new Promise(function(onFulfilled, onRejected) {
+    self.remote.findRoom(room, function(result) {
+      onFulfilled(result);
+    });
+  });
+};
+
+Server.prototype.roomCount = function() {
+  var self = this;
+  return new Promise(function(onFulfilled, onRejected) {
+    self.remote.roomCount(function(result) {
+      onFulfilled(result);
+    });
+  });
 };
 
 Server.prototype.setMaxRooms = function(size) {
   this.maxRooms = size;
 };
 
-Server.prototype.roomCount = function() {
-  return _.keys(this.rooms).length;
-};
-
-Server.prototype.findRoom = function(room) {
-  return this.rooms[room];
-};
-
-Server.prototype.createRoom = function(room) {
-  this.rooms[room] = room;
-  this.remote.createRoom(room, function callback(a, b) {
-    console.log(a);
-    console.log(b);
-  });
+Server.prototype.createRoom = function(room, callback) {
+  this.remote.createRoom(room, callback);
 };
 
 Server.prototype.joinRoom = function(room) {
