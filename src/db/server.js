@@ -3,6 +3,7 @@
 var DB = require('./manager').servers;
 var _  = require('lodash');
 
+var Room   = require('./room');
 var kamote = require('kamote');
 var Log    = require('../utils/log');
 
@@ -24,8 +25,6 @@ Servers.prototype.add = function(socket) {
     self.delete(id);
   });
 
-  Log.info('server [%s] connected', server.index);
-
   return this.data[id];
 };
 
@@ -39,7 +38,7 @@ Servers.prototype.indexOf = function(id) {
 
 Servers.prototype.pick = function() {
   return _.find(this.data, function(server) {
-    return server.roomCount() < 10;
+    return server.isNotFull();
   });
 };
 
@@ -55,9 +54,12 @@ Servers.prototype.select = function(id) {
   return this.data;
 };
 
-Servers.prototype.setAddress = function(id, host, port) {
+Servers.prototype.setAddress = function(id, host, port, size) {
   var server = this.select(id);
   server.setAddress(host, port);
+  server.setMaxRooms(size);
+
+  Log.info('server [%s] online (0/%s)', server.index, server.maxRooms);
 };
 
 Servers.prototype.delete = function(id) {
@@ -67,18 +69,29 @@ Servers.prototype.delete = function(id) {
 // individual
 function Server(id, socket, index) {
   // required
-  if (!socket) return 'room name is required';
+  if (!socket) return 'socket is required';
 
-  this.id      = id;
-  this.name    = null;
-  this.index   = index + 1;
-  this.rooms   = {}; // make this the room model
-  this.address = null;
+  this.id       = id;
+  this.index    = index + 1;
+  this.rooms    = {}; // make this the room model
+  this.maxRooms = 50;
 
   // private
-  this._socket = socket;
-  this._remote = new kamote.Client();
+  Object.defineProperty(this, '_socket', { value: socket });
+  Object.defineProperty(this, '_remote', { value: new kamote.Client() });
 }
+
+Server.prototype.isNotFull = function() {
+  return this.roomCount() < this.maxRooms;
+};
+
+Server.prototype.setMaxRooms = function(size) {
+  this.maxRooms = size;
+};
+
+Server.prototype.remote = function() {
+  return this._remote;
+};
 
 Server.prototype.roomCount = function() {
   return _.keys(this.rooms).length;
@@ -90,19 +103,17 @@ Server.prototype.findRoom = function(room) {
 
 Server.prototype.createRoom = function(room) {
   this.rooms[room] = room;
-  this._remote.createRoom(room);
+  this.remote().createRoom(room);
 };
 
 Server.prototype.joinRoom = function(room) {
-  this._remote.joinRoom(room);
-  return this._remote;
+  this.remote().joinRoom(room);
+  return this.remote();
 };
 
 Server.prototype.setAddress = function(host, port) {
-  if (!this.address) {
-    this.address = { host: host, port: port};
-  }
-  this.startRemote();
+  Object.defineProperty(this, 'address', { value: { host: host, port: port } });
+  this._remote.reconnect(port, host);
 };
 
 Server.prototype.getName = function() {
@@ -110,8 +121,4 @@ Server.prototype.getName = function() {
     return this.address.host + ':' + this.address.port;
   }
   return this.id;
-}
-
-Server.prototype.startRemote = function() {
-  this._remote.reconnect(this.address.port, this.address.host);
-}
+};

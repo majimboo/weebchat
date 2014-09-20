@@ -26,7 +26,7 @@ function start(config) {
   Remote.on('disconnect', Log.warn.bind(Log, 'lobby connection lost'));
 
   Remote.on('ready', function() {
-    Remote.setAddress(Remote.id, config.host, config.port);
+    Remote.setAddress(Remote.id, config.host, config.port, config.max_rooms);
   });
 
   Network.add(createRoom);

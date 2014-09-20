@@ -16,16 +16,12 @@ var sessions = require('./session');
  * @constructor
  * @extends events.EventEmitter
  */
-function Manager(raw) {
+function Manager() {
   events.EventEmitter.call(this);
   this.commands = {};
 
-  this.raw = !!raw;
-
   // expose sessions
   this.sessions = sessions;
-
-  // initialize encryptions
 }
 
 util.inherits(Manager, events.EventEmitter);
@@ -76,7 +72,7 @@ Manager.prototype.send = function(sid, msg) {
   // get the session
   var session = this.sessions.get(sid);
 
-  // encrypt message
+  // i should implement a queue here
 
   // send msg
   session._socket.write(msg + '\r\n');
@@ -185,8 +181,8 @@ Manager.prototype.hookCommand = function(cmd, callback) {
  *
  * @return {Manager}
  */
-function init(raw) {
-  var mgr = new Manager(raw);
+function init() {
+  var mgr = new Manager();
 
   var keys = Object.keys(registry);
   // register all known commands

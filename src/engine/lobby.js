@@ -52,7 +52,7 @@ function start(config) {
  * @param  {Object} session - User session that sent the request.
  */
 function accept(session) {
-  Network.send(session.id, '\nWelcome to the Weeb chat server');
+  Network.send(session.id, '\u001B[2J\u001B[fWelcome to the Weeb chat server');
   Network.send(session.id, 'Login Name?');
 }
 

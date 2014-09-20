@@ -38,10 +38,7 @@ function Session(sid, socket) {
   this.settings = {};
 
   // private
-  Object.defineProperty(this, '_socket', {
-    value: socket,
-    configurable: true
-  });
+  Object.defineProperty(this, '_socket', { value: socket });
 }
 
 Session.prototype.set = function(setting, value) {

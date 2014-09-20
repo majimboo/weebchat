@@ -12,4 +12,4 @@ inter_port: 7000
 db: mongodb://localhost/qchat_test
 
 # settings
-max_rooms: 10
+max_rooms: 5
