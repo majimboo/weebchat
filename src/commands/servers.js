@@ -23,7 +23,10 @@ module.exports = function(msg, session) {
     if (result.length) {
       Network.send(sid, 'Active servers are:');
       _.each(result, function(sv) {
-        Network.send(sid, ' * ' + sv.server.getName() + ' (' + sv.count + ')');
+        var name =  sv.server.getName();
+        var count = sv.count;
+        var max = sv.server.maxRooms;
+        Network.send(sid, ' * ' + name + ' (' + count + '/' + max + ')');
       });
       Network.send(sid, 'end of list.');
     }

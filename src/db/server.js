@@ -43,12 +43,17 @@ Servers.prototype.select = function(id) {
   return this.data;
 };
 
-Servers.prototype.setAddress = function(id, host, port, size) {
-  var server = this.select(id);
-  server.setAddress(host, port);
-  server.setMaxRooms(size);
+Servers.prototype.setAddress = function(data) {
+  var name = data.name;
+  var rooms = data.rooms;
+  var maxRooms = data.maxRooms;
 
-  Log.info('server [%s] online (0/%s)', server.index, server.maxRooms);
+  var server = this.select(data.id);
+  server.setName(name);
+  server.setAddress(data.host, data.port);
+  server.setMaxRooms(maxRooms);
+
+  Log.info('server %s (%s/%s) is online', name, rooms, maxRooms);
 };
 
 Servers.prototype.delete = function(id) {
@@ -145,6 +150,10 @@ Server.prototype.roomCount = function() {
   });
 };
 
+Server.prototype.setName = function(name) {
+  this.name = name;
+};
+
 Server.prototype.setMaxRooms = function(size) {
   this.maxRooms = size;
 };
@@ -163,8 +172,5 @@ Server.prototype.setAddress = function(host, port) {
 };
 
 Server.prototype.getName = function() {
-  if (!!this.address) {
-    return this.address.host + ':' + this.address.port;
-  }
-  return this.id;
+  return this.name || (this.address.host + ':' + this.address.port) || this.id;
 };
