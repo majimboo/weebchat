@@ -6,7 +6,7 @@ var util = require('util');
 var path = require('path');
 var events = require('events');
 
-var registry = require('../commands/registry');
+var commands = require('../db/command');
 
 var Log  = require('../utils/log');
 var User = require('../db/user');
@@ -192,7 +192,7 @@ function create() {
   var mgr = new Manager();
 
   // register all known commands
-  _.each(registry, function(cmd, key) {
+  _.each(commands, function(cmd, key) {
     mgr.registerCommand(key, cmd);
     var file = path.join(__dirname, '..', 'commands', key);
     if (fs.existsSync(file + '.js')) {
