@@ -66,7 +66,7 @@ function joinRoom(room, session) {
   selectedRm.addUser(session.nickname);
 
   // show room info
-  Remote.send(session.id, 'Entering room: ' + session.room);
+  Remote.send(session.id, 'Entering room: ' + selectedRm.name);
   _.each(selectedRm.users, function(user) {
     if (user === session.nickname) {
       Remote.send(session.id, ' * ' + user + ' (** this is you)');
@@ -83,7 +83,7 @@ function joinRoom(room, session) {
   Log.info('%s joined [%s] room', session.nickname, room.name);
 }
 
-function leaveRoom(room, session) {
+function leaveRoom(room, session, callback) {
   var selectedRm = Room.select(room.name);
   selectedRm.removeUser(session.nickname);
 
@@ -92,6 +92,7 @@ function leaveRoom(room, session) {
   Remote.send(session.id, noty + ' (** this is you)');
 
   Log.info('%s left [%s] room', session.nickname, room.name);
+  callback();
 }
 
 function chat(room, msg, session) {

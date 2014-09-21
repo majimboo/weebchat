@@ -9,16 +9,26 @@ function Users() {
 
 module.exports = new Users();
 
-Users.prototype.insert = function(id, value) {
-  this.data[id] = new User(value);
+Users.prototype.insert = function(id, session) {
+  this.data[id] = new User(session);
   return this.data[id];
-}
+};
+
+Users.prototype.select = function(id) {
+  if (!!id) return this.data[id];
+
+  return this.data;
+};
+
+Users.prototype.isNotTaken = function(name) {
+  return this.select(name) === undefined;
+};
 
 // individual
-function User(data) {
+function User(session) {
   // required
-  if (!data.realname) return 'real name is required';
+  if (!session.realname) return 'real name is required';
 
-  this.realname = data.realname;
-  this.nickname = data.nickname || data.realname;
+  this.realname = session.realname;
+  this.nickname = session.nickname || session.realname;
 }

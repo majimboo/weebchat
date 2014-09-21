@@ -84,11 +84,12 @@ function onEnter(msg, session) {
   // validate name
   var validName = utils.validateName(name);
   var goodName  = true;
-  var notTaken  = true;
+  var notTaken  = User.isNotTaken(name);
 
   if (validName && goodName && notTaken) {
     // set the nickname for the session
     session.setName(name);
+    User.insert(name, session);
     Network.send(sid, 'Welcome ' + session.realname + '!');
     return Log.success('%s has entered the Lobby', session.realname);
   }
@@ -253,15 +254,17 @@ function onChat(msg, session) {
  * @param  {Object} msg     - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-function onLeave(msg, session) {
+function onLeave(msg, session, callback) {
   var room = session.getRoom();
 
   if (!room) {
     return Network.send(session.id, 'You are not in any room.');
   }
 
-  session.getRemote().leaveRoom(room, session);
-  session.setRoom(null);
+  session.getRemote().leaveRoom(room, session, function() {
+    session.setRoom(null);
+    if (callback) callback();
+  });
 }
 
 /**
@@ -271,7 +274,10 @@ function onLeave(msg, session) {
  * @param  {Object} session - User session that sent the request.
  */
 function onQuit(msg, session) {
-  session.kick();
+  // if in room, leave first before quiting
+  onLeave(msg, session, function() {
+    session.kick();
+  });
 }
 
 /**

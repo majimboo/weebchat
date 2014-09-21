@@ -24,7 +24,8 @@ function getAll() {
 
 function inRoom(room, exceptMe) {
   return _.filter(_sessions, function(session) {
-    return session.getRoom().name === room && session.id !== exceptMe;
+    var sRoom = session.getRoom();
+    return sRoom && sRoom.name === room && session.id !== exceptMe;
   });
 }
 
