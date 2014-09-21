@@ -6,7 +6,9 @@ var events = require('events');
 
 var registry = require('../commands/registry');
 
-var Log = require('../utils/log');
+var Log  = require('../utils/log');
+var User = require('../db/user');
+
 var _   = require('lodash');
 var sessions = require('./session');
 
@@ -64,6 +66,7 @@ Manager.prototype.accept = function(socket) {
   // destroy session if socket is gone
   session._socket.on('close', function() {
     self.sessions.destroy(session.id);
+    User.delete(session.realname);
     Log.success('%s has gone offline', session.realname || session.id);
   });
 };
@@ -89,6 +92,8 @@ Manager.prototype.sendToRoom = function(room, msg, exceptMe) {
 };
 
 Manager.prototype.receive = function(data, session) {
+  // should do something to telnet commands
+  // noticed that when I press ctrl+C nothings gets displayed anymore
   var self = this;
 
   // handle received data here
@@ -120,7 +125,7 @@ Manager.prototype.receive = function(data, session) {
     }
 
     // commands
-    if (/^[\/]/.test(message)) {
+    if (message.charCodeAt(0) === 0x2F) {
       var argv = message.substr(1).split(/[\s]+/);
       var command = argv.shift();
       return self.command_callback(command, argv, session);
