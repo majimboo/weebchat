@@ -260,7 +260,7 @@ function onLeave(msg, session) {
     return Network.send(session.id, 'You are not in any room.');
   }
 
-  session.getRemote().leaveRoom(session.getRoom(), session);
+  session.getRemote().leaveRoom(room, session);
   session.setRoom(null);
 }
 

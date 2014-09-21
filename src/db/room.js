@@ -51,3 +51,7 @@ Room.prototype.userCount = function() {
 Room.prototype.addUser = function(nickname) {
   this.users[nickname] = nickname;
 }
+
+Room.prototype.removeUser = function(nickname) {
+  delete this.users[nickname];
+}

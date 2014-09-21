@@ -62,14 +62,12 @@ function createRoom(name, callback) {
 }
 
 function joinRoom(room, session) {
-  Log.info('%s joined [%s] room', session.nickname, room.name);
   var selectedRm = Room.select(room.name);
   selectedRm.addUser(session.nickname);
 
   // show room info
   Remote.send(session.id, 'Entering room: ' + session.room);
   _.each(selectedRm.users, function(user) {
-    console.log(user);
     if (user === session.nickname) {
       Remote.send(session.id, ' * ' + user + ' (** this is you)');
     } else {
@@ -81,9 +79,18 @@ function joinRoom(room, session) {
   // notify members of new user
   var noty = '* new user joined ' + selectedRm.name + ': ' + session.nickname;
   Remote.sendToRoom(selectedRm.name, noty, session.id);
+
+  Log.info('%s joined [%s] room', session.nickname, room.name);
 }
 
 function leaveRoom(room, session) {
+  var selectedRm = Room.select(room.name);
+  selectedRm.removeUser(session.nickname);
+
+  var noty = '* user has left chat: ' + session.nickname;
+  Remote.sendToRoom(selectedRm.name, noty, session.id);
+  Remote.send(session.id, noty + ' (** this is you)');
+
   Log.info('%s left [%s] room', session.nickname, room.name);
 }
 
