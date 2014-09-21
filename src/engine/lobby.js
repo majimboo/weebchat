@@ -46,6 +46,8 @@ function start(config) {
   Network.hookCommand('create', onCreate);
   Network.hookCommand('join', onJoin);
   Network.hookCommand('chat', onChat);
+  Network.hookCommand('me', onChatAction);
+  Network.hookCommand('msg', onPrivateMsg);
   Network.hookCommand('leave', onLeave);
   Network.hookCommand('quit', onQuit);
 }
@@ -246,6 +248,35 @@ function onChat(msg, session) {
   if (room) return session.getRemote().chat(room, message, session);
 
   Network.send(session.id, 'Sorry, you are not in any room.');
+}
+
+/**
+ * [onChatAction description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
+function onChatAction(msg, session) {
+  var message = msg.msg;
+  var sid = session.id;
+  var room = session.getRoom();
+
+  // validate params
+  if (!message.length) return Network.send(sid, '/me <message>');
+
+  if (room) return session.getRemote().chatAction(room, message, session);
+
+  Network.send(session.id, 'Sorry, you are not in any room.');
+}
+
+/**
+ * [onPrivateMsg description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
+function onPrivateMsg(msg, session) {
+
 }
 
 /**

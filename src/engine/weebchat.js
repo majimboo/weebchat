@@ -38,7 +38,8 @@ function start(config) {
     createRoom: createRoom,
     joinRoom: joinRoom,
     leaveRoom: leaveRoom,
-    chat: chat
+    chat: chat,
+    chatAction: chatAction
   });
 }
 
@@ -97,6 +98,10 @@ function leaveRoom(room, session, callback) {
 
 function chat(room, msg, session) {
   Remote.sendToRoom(room.name, session.nickname + ': ' + msg);
+}
+
+function chatAction(room, msg, session) {
+  Remote.sendToRoom(room.name, session.nickname + ' ' + msg);
 }
 
 /**

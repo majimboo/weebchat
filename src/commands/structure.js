@@ -39,6 +39,18 @@ CMD.CHAT = function(msg) {
   }
 }
 
+CMD.ME = function(msg) {
+  return {
+    msg: msg.join(' ')
+  }
+}
+
+CMD.MSG = function(msg) {
+  return {
+    msg: msg.join(' ')
+  }
+}
+
 CMD.LEAVE = function(msg) {
   return msg;
 }
