@@ -3,8 +3,8 @@ weebchat [![Build Status](https://travis-ci.org/majimboo/weebchat.svg?branch=mas
 
 A dynamically distributed telnet chat server.
 
-Installation
-------------
+Install
+-------
 
     $ git clone git@github.com:majimboo/weebchat.git
     $ cd weebchat
@@ -36,6 +36,32 @@ Starting a server.
       -h, --help           output usage information
       -V, --version        output the version number
       -c, --config [path]  path to config
+
+Connect
+-------
+
+    $ telnet localhost 9399
+    Welcome to the Weeb chat server
+    Login Name?
+    arif
+    Welcome arif!
+    /create room secretpass
+    /join room
+    Entering room: room
+     * arif (** this is you)
+    end of list.
+    * new user joined room: majid
+    majid: hi there
+    /kick majid
+    Permission denied.
+    /login secretpass
+    Successfully authenticated.
+    /kick majid
+    majid was kicked.
+    /quit
+    * user has left chat: arif (** this is you)
+    BYE
+    Connection closed by foreign host.
 
 Architecture
 ------------

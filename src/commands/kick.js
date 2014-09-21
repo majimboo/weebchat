@@ -36,6 +36,7 @@ module.exports = function(msg, session) {
       return Network.send(sid, 'Sorry, user is on another room.');
     }
     user.kick('BYE');
+    Network.sendToRoom(room.name, user.realname + ' was kicked.', user.id);
     return;
   }
 
