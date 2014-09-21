@@ -43,6 +43,7 @@ function start(config) {
   Network.hookCommand('enter', onEnter);
   Network.hookCommand('rooms', onRooms);
   Network.hookCommand('servers', onServers);
+  Network.hookCommand('nick', onNick);
   Network.hookCommand('create', onCreate);
   Network.hookCommand('join', onJoin);
   Network.hookCommand('chat', onChat);
@@ -155,6 +156,22 @@ function onServers(msg, session) {
   }
 
   Network.send(sid, 'There are currently no active servers.');
+}
+
+/**
+ * [onNick description]
+ *
+ * @param  {Object} msg     - Message structure.
+ * @param  {Object} session - User session that sent the request.
+ */
+function onNick(msg, session) {
+  var nick = msg.nick;
+  var sid = session.id;
+
+  // validate params
+  if (!nick) return Network.send(sid, '/nick <nickname>');
+
+  // TODO
 }
 
 /**

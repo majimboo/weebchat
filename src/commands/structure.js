@@ -21,6 +21,12 @@ CMD.SERVERS = function(msg) {
   return msg;
 }
 
+CMD.NICK = function(msg) {
+  return {
+    nick: msg[0]
+  }
+}
+
 CMD.CREATE = function(msg) {
   return {
     name: msg[0]
