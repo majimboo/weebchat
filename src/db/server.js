@@ -158,8 +158,8 @@ Server.prototype.setMaxRooms = function(size) {
   this.maxRooms = size;
 };
 
-Server.prototype.createRoom = function(room, callback) {
-  this.remote.createRoom(room, callback);
+Server.prototype.createRoom = function(room, pass, callback) {
+  this.remote.createRoom(room, pass, callback);
 };
 
 Server.prototype.joinRoom = function(room, session) {

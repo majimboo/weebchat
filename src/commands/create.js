@@ -13,11 +13,12 @@ var Log     = require('../utils/log');
  */
 module.exports = function(msg, session) {
   var name = msg.name;
+  var pass = msg.pass;
   var sid  = session.id;
   var nick = session.realname;
 
   // validate params
-  if (!name) return Network.send(sid, '/create <room>');
+  if (!name || !pass) return Network.send(sid, '/create <room> <password>');
 
   // validate room name
   if (!utils.validateName(name)) {
@@ -36,7 +37,7 @@ module.exports = function(msg, session) {
           return Log.warn('%s failed to create [%s] room', nick, name);
         }
 
-        server.createRoom(name, function(done) {
+        server.createRoom(name, pass, function(done) {
           if (done) {
             return Log.success('%s has created [%s] room', nick, name);
           }

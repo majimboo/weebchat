@@ -13,10 +13,10 @@ var Server = require('../db/server');
  */
 module.exports = function(msg, session) {
   var sid = session.id;
+  var allowed = session.realname === 'admin';
 
-  if (session.realname !== 'admin') {
-    Network.send(sid, 'Permission denied.');
-    return;
+  if (!allowed) {
+    return Network.send(sid, 'Permission denied.');
   }
 
   Server.all(function(result) {

@@ -5,8 +5,13 @@ module.exports = {
     return msg;
   },
   enter: function(msg) {
-    var data = {}
+    var data = {};
     data.name = msg;
+    return data;
+  },
+  login: function(msg) {
+    var data = {};
+    data.password = msg[0];
     return data;
   },
   rooms: function(msg) {
@@ -16,27 +21,28 @@ module.exports = {
     return msg;
   },
   nick: function(msg) {
-    var data = {}
+    var data = {};
     data.nick = msg[0];
     return data;
   },
   create: function(msg) {
-    var data = {}
+    var data = {};
     data.name = msg[0];
+    data.pass = msg[1];
     return data;
   },
   join: function(msg) {
-    var data = {}
+    var data = {};
     data.room = msg[0];
     return data;
   },
   chat: function(msg) {
-    var data = {}
+    var data = {};
     data.msg = msg;
     return data;
   },
   me: function(msg) {
-    var data = {}
+    var data = {};
     data.msg = msg.join(' ');
     return data;
   },
@@ -44,6 +50,11 @@ module.exports = {
     var data = {};
     data.nick = msg.shift();
     data.msg  = msg.join(' ');
+    return data;
+  },
+  kick: function(msg) {
+    var data = {};
+    data.nick = msg.shift();
     return data;
   },
   leave: function(msg) {

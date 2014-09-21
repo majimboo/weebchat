@@ -17,5 +17,6 @@ module.exports = function(msg, session) {
 
   session.getRemote().leaveRoom(room, session, function() {
     session.setRoom(null);
+    session.authenticated = null;
   });
 }

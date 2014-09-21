@@ -42,6 +42,7 @@ function Room(data) {
   this.name  = data.name;
   this.users = data.users || {};
   this.loc   = data.loc || null;
+  this.password = data.password || null;
 }
 
 Room.prototype.userCount = function() {

@@ -63,8 +63,8 @@ function roomCount(callback) {
   callback(Room.select().length);
 }
 
-function createRoom(name, callback) {
-  Room.insert(name, { name: name });
+function createRoom(name, password, callback) {
+  Room.insert(name, { name: name, password: password });
   callback(true);
 
   Log.success('[%s] room created ', name);

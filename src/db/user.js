@@ -1,7 +1,6 @@
 'use strict';
 
 var DB = require('./manager').users;
-var _  = require('lodash');
 
 function Users() {
   this.data = DB;
