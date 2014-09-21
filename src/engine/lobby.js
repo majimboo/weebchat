@@ -174,8 +174,9 @@ function onCreate(msg, session) {
   }
 
   Server.findRoom(name, function(result) {
+    var room = result.room;
     // check if room doesn't exist yet
-    if (result && result.length) {
+    if (room) {
       return Network.send(sid, 'Sorry, name taken.');
     } else {
       Server.pick(function(server) {
@@ -213,20 +214,21 @@ function onJoin(msg, session) {
     return;
   }
 
-  // check if room exists
   Server.findRoom(room, function(result) {
-    if (result && result.length) {
-      Server.findByRoom(room, function(server) {
-        var remote = server.joinRoom(room, session);
+    var room = result.room;
+    var server = result.server;
 
-        session.setRoom(room);
-        session.setRemote(remote);
-      });
+    // if a server is given then the room exists
+    if (server) {
+      server.joinRoom(room, session);
+
+      session.setRoom(room);
+      session.setRemote(server.remote);
       return;
     }
 
     // fallback for unexpected behaviour
-    Network.send(sid, 'Sorry, invalid room.');
+    Network.send(sid, 'Sorry, no server is hosting such room.');
   });
 }
 
@@ -252,7 +254,13 @@ function onChat(msg, session) {
  * @param  {Object} session - User session that sent the request.
  */
 function onLeave(msg, session) {
-  // remove room
+  var room = session.getRoom();
+
+  if (!room) {
+    return Network.send(session.id, 'You are not in any room.');
+  }
+
+  session.getRemote().leaveRoom(session.getRoom(), session);
   session.setRoom(null);
 }
 

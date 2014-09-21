@@ -66,50 +66,21 @@ Servers.prototype.findRooms = function(callback) {
 }
 
 Servers.prototype.findRoom = function(room, callback) {
-  Promise.map(_.toArray(this.data), function(server) {
+  var servers = _.toArray(this.data);
+  Promise.map(servers, function(server) {
     return server.findRoom(room);
-  }).then(function(results) {
-    return _.filter(results, function(result) {
-      return result !== null;
-    });
-  }).then(function(results) {
-    // shouldnt be an array
-    callback(results);
-  });
-}
+  }).then(function() {
+    callback();
+  }).catch(callback);
+};
 
 Servers.prototype.pick = function(callback) {
   var servers = _.toArray(this.data);
   Promise.map(servers, function(server) {
-    return server.roomCount();
-  }).then(function(result) {
-    var idx = _.findIndex(result, function(population) {
-      return population < 1;
-    });
-
-    if (idx === -1) {
-      return callback(null);
-    }
-
-    callback(servers[idx])
-  });
-};
-
-Servers.prototype.findByRoom = function(room, callback) {
-  var servers = _.toArray(this.data);
-  Promise.map(servers, function(server) {
-    return server.findRoom(room);
-  }).then(function(results) {
-    var idx = _.findIndex(results, function(result) {
-      return result !== null;
-    });
-
-    if (idx === -1) {
-      return callback(null);
-    }
-
-    callback(servers[idx]);
-  });
+    return server.isFull();
+  }).then(function() {
+    callback();
+  }).catch(callback);
 };
 
 // individual
@@ -128,7 +99,7 @@ function Server(id, socket, index) {
 // new stuff
 Server.prototype.findRooms = function() {
   var self = this;
-  return new Promise(function(onFulfilled, onRejected) {
+  return new Promise(function(onFulfilled) {
     self.remote.findRooms(function(result) {
       if (result) onFulfilled(result);
     });
@@ -139,16 +110,20 @@ Server.prototype.findRoom = function(room) {
   var self = this;
   return new Promise(function(onFulfilled, onRejected) {
     self.remote.findRoom(room, function(result) {
-      onFulfilled(result);
+      if (result) onRejected({ room: result, server: self });
+      onFulfilled();
     });
   });
 };
 
-Server.prototype.roomCount = function() {
+Server.prototype.isFull = function() {
   var self = this;
   return new Promise(function(onFulfilled, onRejected) {
-    self.remote.roomCount(function(result) {
-      onFulfilled(result);
+    self.remote.roomCount(function(count) {
+      if (count < self.maxRooms) {
+        onRejected(self);
+      }
+      onFulfilled(count);
     });
   });
 };
@@ -161,9 +136,8 @@ Server.prototype.createRoom = function(room, callback) {
   this.remote.createRoom(room, callback);
 };
 
-Server.prototype.joinRoom = function(room) {
-  this.remote.joinRoom(room);
-  return this.remote;
+Server.prototype.joinRoom = function(room, session) {
+  this.remote.joinRoom(room, session);
 };
 
 Server.prototype.setAddress = function(host, port) {

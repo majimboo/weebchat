@@ -31,12 +31,15 @@ function start(config) {
     Remote.setAddress(Remote.id, config.host, config.port, config.max_rooms);
   });
 
-  Network.add(findRoom);
-  Network.add(findRooms);
-  Network.add(roomCount);
-  Network.add(createRoom);
-  Network.add(joinRoom);
-  Network.add(chat);
+  Network.def({
+    findRoom: findRoom,
+    findRooms: findRooms,
+    roomCount: roomCount,
+    createRoom: createRoom,
+    joinRoom: joinRoom,
+    leaveRoom: leaveRoom,
+    chat: chat
+  });
 }
 
 function findRoom(room, callback) {
@@ -55,16 +58,37 @@ function createRoom(name, callback) {
   Room.insert(name, { name: name });
   callback(true);
 
-  Log.success('room [%s] created ', name);
+  Log.success('[%s] room created ', name);
 }
 
 function joinRoom(room, session) {
-  var selectedRm = Room.select(room);
+  Log.info('%s joined [%s] room', session.nickname, room.name);
+  var selectedRm = Room.select(room.name);
   selectedRm.addUser(session.nickname);
+
+  // show room info
+  Remote.send(session.id, 'Entering room: ' + session.room);
+  _.each(selectedRm.users, function(user) {
+    console.log(user);
+    if (user === session.nickname) {
+      Remote.send(session.id, ' * ' + user + ' (** this is you)');
+    } else {
+      Remote.send(session.id, ' * ' + user);
+    }
+  });
+  Remote.send(session.id, 'end of list.');
+
+  // notify members of new user
+  var noty = '* new user joined ' + selectedRm.name + ': ' + session.nickname;
+  Remote.sendToRoom(selectedRm.name, noty, session.id);
+}
+
+function leaveRoom(room, session) {
+  Log.info('%s left [%s] room', session.nickname, room.name);
 }
 
 function chat(room, msg, session) {
-  Remote.sendToRoom(room, session.nickname + ': ' + msg);
+  Remote.sendToRoom(room.name, session.nickname + ': ' + msg);
 }
 
 /**

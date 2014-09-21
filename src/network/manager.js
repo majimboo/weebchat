@@ -78,9 +78,9 @@ Manager.prototype.send = function(sid, msg) {
   session._socket.write(msg + '\r\n');
 };
 
-Manager.prototype.sendToRoom = function(room, msg) {
+Manager.prototype.sendToRoom = function(room, msg, exceptMe) {
   var self = this;
-  var sessions = this.sessions.inRoom(room);
+  var sessions = this.sessions.inRoom(room, exceptMe);
 
   // send msg to all
   _.each(sessions, function(session) {

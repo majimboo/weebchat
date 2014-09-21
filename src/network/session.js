@@ -22,9 +22,9 @@ function getAll() {
   return _sessions;
 }
 
-function inRoom(room) {
+function inRoom(room, exceptMe) {
   return _.filter(_sessions, function(session) {
-    return session.getRoom() === room;
+    return session.getRoom().name === room && session.id !== exceptMe;
   });
 }
 
