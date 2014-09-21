@@ -274,7 +274,13 @@ function onLeave(msg, session, callback) {
  * @param  {Object} session - User session that sent the request.
  */
 function onQuit(msg, session) {
+  var room = session.getRoom();
+
   // if in room, leave first before quiting
+  if (!room) {
+    return session.kick();
+  }
+
   onLeave(msg, session, function() {
     session.kick();
   });

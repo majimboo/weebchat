@@ -24,6 +24,10 @@ Users.prototype.isNotTaken = function(name) {
   return this.select(name) === undefined;
 };
 
+Users.prototype.delete = function(id) {
+  delete this.data[id];
+};
+
 // individual
 function User(session) {
   // required
