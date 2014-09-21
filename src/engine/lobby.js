@@ -278,11 +278,11 @@ function onQuit(msg, session) {
 
   // if in room, leave first before quiting
   if (!room) {
-    return session.kick();
+    return session.kick('BYE');
   }
 
   onLeave(msg, session, function() {
-    session.kick();
+    session.kick('BYE');
   });
 }
 

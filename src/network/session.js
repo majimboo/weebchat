@@ -56,7 +56,10 @@ Session.prototype.get = function(setting) {
   return this.settings[setting];
 };
 
-Session.prototype.kick = function() {
+Session.prototype.kick = function(msg) {
+  if (msg) {
+    this._socket.write(msg + '\n');
+  }
   this._socket.destroy();
 };
 
