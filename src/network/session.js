@@ -22,6 +22,12 @@ function getAll() {
   return _sessions;
 }
 
+function getByNick(nickname) {
+  return _.find(_sessions, function(session) {
+    return session.nickname === nickname;
+  });
+}
+
 function inRoom(room, exceptMe) {
   return _.filter(_sessions, function(session) {
     var sRoom = session.getRoom();
@@ -33,6 +39,7 @@ module.exports = {
   create: create,
   destroy: destroy,
   get: get,
+  getByNick: getByNick,
   getAll: getAll,
   inRoom: inRoom
 };

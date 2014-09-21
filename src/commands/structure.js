@@ -47,6 +47,7 @@ CMD.ME = function(msg) {
 
 CMD.MSG = function(msg) {
   return {
+    nick: msg.shift(),
     msg: msg.join(' ')
   }
 }
