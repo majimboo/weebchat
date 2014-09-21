@@ -217,7 +217,7 @@ function onJoin(msg, session) {
   Server.findRoom(room, function(result) {
     if (result && result.length) {
       Server.findByRoom(room, function(server) {
-        var remote = server.joinRoom(room);
+        var remote = server.joinRoom(room, session);
 
         session.setRoom(room);
         session.setRemote(remote);

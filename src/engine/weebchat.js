@@ -3,6 +3,7 @@
 var _   = require('lodash');
 
 var Room = require('../db/room');
+var User = require('../db/user');
 var Log  = require('../utils/log');
 var RPC  = require('../network/remote');
 
@@ -57,8 +58,9 @@ function createRoom(name, callback) {
   Log.success('room [%s] created ', name);
 }
 
-function joinRoom(room) {
-  Log.info('joined: %s', room);
+function joinRoom(room, session) {
+  var selectedRm = Room.select(room);
+  selectedRm.addUser(session.nickname);
 }
 
 function chat(room, msg, session) {

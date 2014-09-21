@@ -47,3 +47,7 @@ function Room(data) {
 Room.prototype.userCount = function() {
   return _.keys(this.users).length;
 };
+
+Room.prototype.addUser = function(nickname) {
+  this.users[nickname] = nickname;
+}
