@@ -1,7 +1,9 @@
 'use strict';
 
+var fs = require('fs');
 var net = require('net');
 var util = require('util');
+var path = require('path');
 var events = require('events');
 
 var registry = require('../commands/registry');
@@ -186,15 +188,17 @@ Manager.prototype.hookCommand = function(cmd, callback) {
  *
  * @return {Manager}
  */
-function init() {
+function create() {
   var mgr = new Manager();
 
-  var keys = Object.keys(registry);
   // register all known commands
-  for (var i = 0; i < keys.length; i++) {
-    var cmd = keys[i];
-    mgr.registerCommand(cmd, registry[cmd]);
-  }
+  _.each(registry, function(cmd, key) {
+    mgr.registerCommand(key, cmd);
+    var file = path.join(__dirname, '..', 'commands', key);
+    if (fs.existsSync(file + '.js')) {
+      mgr.hookCommand(key, require(file));
+    }
+  });
 
   return mgr;
 }
@@ -203,6 +207,4 @@ function init() {
  * @export
  * @type {Object}
  */
-module.exports = {
-  init: init
-}
+module.exports.create = create;
