@@ -1,6 +1,6 @@
 {
   "name": "weebchat",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Weeby Simulation Exam - Chat Server",
   "directories": {
     "test": "test"
