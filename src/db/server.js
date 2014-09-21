@@ -3,7 +3,6 @@
 var DB = require('./manager').servers;
 var _  = require('lodash');
 
-var Room = require('./room');
 var RPC  = require('../network/remote');
 var Log  = require('../utils/log');
 
@@ -83,6 +82,15 @@ Servers.prototype.pick = function(callback) {
   }).catch(callback);
 };
 
+Servers.prototype.all = function(callback) {
+  var servers = _.toArray(this.data);
+  Promise.map(servers, function(server) {
+    return server.roomCount();
+  }).then(function(result) {
+    callback(result);
+  });
+};
+
 // individual
 function Server(id, socket, index) {
   // required
@@ -124,6 +132,15 @@ Server.prototype.isFull = function() {
         onRejected(self);
       }
       onFulfilled(count);
+    });
+  });
+};
+
+Server.prototype.roomCount = function() {
+  var self = this;
+  return new Promise(function(onFulfilled) {
+    self.remote.roomCount(function(count) {
+      onFulfilled({ count: count, server: self });
     });
   });
 };

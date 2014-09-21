@@ -19,15 +19,15 @@ module.exports = function(msg, session) {
     return;
   }
 
-  if (!!Server.count()) {
-    var servers = Server.select();
-    Network.send(sid, 'Active servers are:');
-    _.each(servers, function(sv) {
-      Network.send(sid, ' * ' + sv.getName() + ' (' + sv.roomCount() + ')');
-    });
-    Network.send(sid, 'end of list.');
-    return;
-  }
+  Server.all(function(result) {
+    if (result.length) {
+      Network.send(sid, 'Active servers are:');
+      _.each(result, function(sv) {
+        Network.send(sid, ' * ' + sv.server.getName() + ' (' + sv.count + ')');
+      });
+      Network.send(sid, 'end of list.');
+    }
 
-  Network.send(sid, 'There are currently no active servers.');
+    Network.send(sid, 'There are currently no active servers.');
+  });
 }
