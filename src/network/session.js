@@ -50,7 +50,7 @@ function Session(sid, socket) {
   this.nickname = null;
   this.currentRoom = null;
   this.settings = {};
-  this.host = sid.split(':')[0];
+  this.host = sid.split(':').shift();
 
   // private
   Object.defineProperty(this, '_socket', { value: socket });

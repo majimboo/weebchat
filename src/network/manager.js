@@ -87,11 +87,10 @@ Manager.prototype.accept = function(socket) {
   // coming from the same ip is coming in too fast.
   var host = Host.select(session.host);
   if (host) {
-    var delta = (Date.now() - host.lastIn);
-    console.log(delta);
+    var delta = Date.now() - host.lastIn;
     if (delta < 1000 && host.count > 2) {
       Log.warn('probable dos detected from %s', session.host);
-      return session.kick()
+      return session.kick();
     }
   }
   Host.insert(session.host);
