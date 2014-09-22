@@ -19,6 +19,8 @@ var Lobby  = new RPC.Server();
 function start(config) {
   Log.info('booting in %s', config.env);
 
+  Network.setMaxUsers(config.max_users);
+
   // frontend
   Network.listen(config.port, config.host, Network.listen_callback);
 

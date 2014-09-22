@@ -115,6 +115,8 @@ function leaveRoom(room, session, callback) {
 }
 
 function chat(room, msg, session) {
+  // TODO chat anti flood
+
   if (msg) Remote.sendToRoom(room.name, session.nickname + ': ' + msg);
 }
 

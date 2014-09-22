@@ -13,4 +13,4 @@ invalid_names:
   - admin
 
 # settings
-max_users: 10
+max_users: 100

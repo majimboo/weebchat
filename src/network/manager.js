@@ -22,13 +22,18 @@ var sessions = require('./session');
  */
 function Manager() {
   events.EventEmitter.call(this);
-  this.commands = {};
 
+  this.commands = {};
+  this.maxUsers = 200; // default
   // expose sessions
   this.sessions = sessions;
 }
 
 util.inherits(Manager, events.EventEmitter);
+
+Manager.prototype.setMaxUsers = function(size) {
+  this.maxUsers = size;
+};
 
 /**
  * Listen for connection.
@@ -37,6 +42,7 @@ util.inherits(Manager, events.EventEmitter);
  */
 Manager.prototype.listen = function() {
   var server = net.createServer();
+  server.maxConnections = this.maxUsers;
   server.listen.apply(server, arguments);
   this.ready(server);
 };
@@ -71,6 +77,13 @@ Manager.prototype.accept = function(socket) {
     User.delete(session.realname);
     Log.success('%s has gone offline', session.realname || session.id);
   });
+
+  // simple anti dos pattern
+  // recheck if session has a nickname after 4 seconds
+  // kick if still not
+  setTimeout(function() {
+    if (!session.nickname) return session.kick();
+  }, 4000);
 };
 
 Manager.prototype.send = function(sid, msg) {
