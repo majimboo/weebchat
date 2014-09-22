@@ -10,6 +10,7 @@ var commands = require('../db/command');
 
 var Log  = require('../utils/log');
 var User = require('../db/user');
+var Host = require('../db/host');
 
 var _   = require('lodash');
 var sessions = require('./session');
@@ -75,15 +76,32 @@ Manager.prototype.accept = function(socket) {
   session._socket.on('close', function() {
     self.sessions.destroy(session.id);
     User.delete(session.realname);
+    Host.delete(session.host);
     Log.success('%s has gone offline', session.realname || session.id);
   });
 
   // simple anti dos pattern
-  // recheck if session has a nickname after 4 seconds
-  // kick if still not
+
+  // usually connection flooding happens from one source in
+  // fast intervals. we can try to detect if connections
+  // coming from the same ip is coming in too fast.
+  var host = Host.select(session.host);
+  if (host) {
+    var delta = (Date.now() - host.lastIn);
+    console.log(delta);
+    if (delta < 1000 && host.count > 2) {
+      Log.warn('probable dos detected from %s', session.host);
+      return session.kick()
+    }
+  }
+  Host.insert(session.host);
+
+  // recheck if session has a nickname after 9 seconds
+  // kick if still not. I mean who takes 9 seconds to think
+  // of a chatroom nick :D
   setTimeout(function() {
-    if (!session.nickname) return session.kick();
-  }, 4000);
+    if (!session.realname) return session.kick();
+  }, 9000);
 };
 
 Manager.prototype.send = function(sid, msg) {

@@ -6,7 +6,8 @@
 var DB = {
   rooms: {},
   users: {},
-  servers: {}
+  servers: {},
+  hosts: {}
 }
 
 module.exports = DB;
