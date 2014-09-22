@@ -34,6 +34,18 @@ Rooms.prototype.delete = function(id) {
   delete this.data[id];
 };
 
+Rooms.prototype.users = function() {
+  return _.map(this.data, function(room) {
+    return room.users;
+  });
+};
+
+Rooms.prototype.findUser = function(nickname) {
+  return _.find(this.data, function(room) {
+    return room.users[nickname] !== undefined;
+  });
+};
+
 // individual
 function Room(data) {
   // required
@@ -49,8 +61,8 @@ Room.prototype.userCount = function() {
   return _.keys(this.users).length;
 };
 
-Room.prototype.addUser = function(nickname) {
-  this.users[nickname] = nickname;
+Room.prototype.addUser = function(nickname, session) {
+  this.users[nickname] = session;
 }
 
 Room.prototype.removeUser = function(nickname) {

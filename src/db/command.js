@@ -20,11 +20,6 @@ module.exports = {
   servers: function(msg) {
     return msg;
   },
-  nick: function(msg) {
-    var data = {};
-    data.nick = msg[0];
-    return data;
-  },
   create: function(msg) {
     var data = {};
     data.name = msg[0];

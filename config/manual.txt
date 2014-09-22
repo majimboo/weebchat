@@ -1,7 +1,11 @@
 Commands:
 
-  /help          - shows this message.
-  /rooms         - shows a list of active rooms.
-  /create <room> - creates a new room.
-  /join <room>   - joins an existing room.
-  /quit          - disconnect from the server.
+  /help                     - shows this message.
+  /rooms                    - shows a list of active rooms.
+  /create <room> <password> - creates a new room with a operator password.
+  /join <room>              - joins an existing room.
+  /leave                    - leaves the current room.
+  /login <password>         - authenticate yourself to use operator commands.
+  /me <action>              - shout an action.
+  /msg <nick> <message>     - sends a private message to specified nick.
+  /quit                     - disconnect from the server.

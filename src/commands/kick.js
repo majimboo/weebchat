@@ -35,8 +35,13 @@ module.exports = function(msg, session) {
     if (user.getRoom().name !== room.name) {
       return Network.send(sid, 'Sorry, user is on another room.');
     }
-    user.kick('BYE');
-    Network.sendToRoom(room.name, user.realname + ' was kicked.', user.id);
+    session.getRemote().kick(room, user, function() {
+      user.setRoom(null);
+      user.authenticated = null;
+      var noty = user.realname + ' has been kicked from the room.';
+      Network.send(user.id, noty + ' (** this is you)');
+      Network.sendToRoom(room.name, noty, user.id);
+    });
     return;
   }
 

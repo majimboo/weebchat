@@ -3,7 +3,6 @@
 var _   = require('lodash');
 
 var Room = require('../db/room');
-var User = require('../db/user');
 var Log  = require('../utils/log');
 var RPC  = require('../network/remote');
 
@@ -39,6 +38,8 @@ function start(config) {
   });
 
   Network.def({
+    findUser: findUser,
+    findUsers: findUsers,
     findRoom: findRoom,
     findRooms: findRooms,
     roomCount: roomCount,
@@ -46,9 +47,18 @@ function start(config) {
     joinRoom: joinRoom,
     leaveRoom: leaveRoom,
     chat: chat,
+    kick: kick,
     chatAction: chatAction,
     privateMsg: privateMsg
   });
+}
+
+function findUser(nickname, callback) {
+  callback(Room.findUser(nickname));
+}
+
+function findUsers(callback) {
+  callback(Room.users());
 }
 
 function findRoom(room, callback) {
@@ -72,15 +82,15 @@ function createRoom(name, password, callback) {
 
 function joinRoom(room, session) {
   var selectedRm = Room.select(room.name);
-  selectedRm.addUser(session.nickname);
+  selectedRm.addUser(session.nickname, session);
 
   // show room info
   Remote.send(session.id, 'Entering room: ' + selectedRm.name);
   _.each(selectedRm.users, function(user) {
-    if (user === session.nickname) {
-      Remote.send(session.id, ' * ' + user + ' (** this is you)');
+    if (user.nickname === session.nickname) {
+      Remote.send(session.id, ' * ' + user.nickname + ' (** this is you)');
     } else {
-      Remote.send(session.id, ' * ' + user);
+      Remote.send(session.id, ' * ' + user.nickname);
     }
   });
   Remote.send(session.id, 'end of list.');
@@ -106,6 +116,14 @@ function leaveRoom(room, session, callback) {
 
 function chat(room, msg, session) {
   if (msg) Remote.sendToRoom(room.name, session.nickname + ': ' + msg);
+}
+
+function kick(room, session, callback) {
+  var selectedRm = Room.select(room.name);
+  selectedRm.removeUser(session.nickname);
+
+  Log.info('%s left [%s] room', session.nickname, room.name);
+  callback();
 }
 
 function chatAction(room, msg, session) {

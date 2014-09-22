@@ -33,10 +33,6 @@ Servers.prototype.count = function() {
   return _.keys(this.data).length;
 };
 
-Servers.prototype.indexOf = function(id) {
-  return _.keys(this.data).indexOf(id) + 1;
-};
-
 Servers.prototype.select = function(id) {
   if (!!id) return this.data[id];
 
@@ -62,7 +58,8 @@ Servers.prototype.delete = function(id) {
 
 // new stuff
 Servers.prototype.findRooms = function(callback) {
-  Promise.map(_.toArray(this.data), function(server) {
+  var servers = _.toArray(this.data);
+  Promise.map(servers, function(server) {
     return server.findRooms();
   }).then(_.flatten).then(function(results) {
     callback(results);
@@ -94,6 +91,24 @@ Servers.prototype.all = function(callback) {
   }).then(function(result) {
     callback(result);
   });
+};
+
+Servers.prototype.findUsers = function(callback) {
+  var servers = _.toArray(this.data);
+  Promise.map(servers, function(server) {
+    return server.findUsers();
+  }).then(_.flatten).then(function(results) {
+    callback(results);
+  });
+};
+
+Servers.prototype.findUser = function(nickname, callback) {
+  var servers = _.toArray(this.data);
+  Promise.map(servers, function(server) {
+    return server.findUser(nickname);
+  }).then(function() {
+    callback();
+  }).catch(callback);
 };
 
 // individual
@@ -146,6 +161,25 @@ Server.prototype.roomCount = function() {
   return new Promise(function(onFulfilled) {
     self.remote.roomCount(function(count) {
       onFulfilled({ count: count, server: self });
+    });
+  });
+};
+
+Server.prototype.findUsers = function() {
+  var self = this;
+  return new Promise(function(onFulfilled) {
+    self.remote.findRooms(function(result) {
+      if (result) onFulfilled(result);
+    });
+  });
+};
+
+Server.prototype.findUser = function(nickname) {
+  var self = this;
+  return new Promise(function(onFulfilled, onRejected) {
+    self.remote.findRoom(nickname, function(result) {
+      if (result) onRejected(result);
+      onFulfilled();
     });
   });
 };
