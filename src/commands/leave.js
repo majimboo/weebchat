@@ -1,6 +1,7 @@
 'use strict';
 
-var Network = require('../network/manager').create();
+var Network = require('../network/manager').get();
+var consts  = require('../utils/constants');
 
 /**
  * [onLeave description]
@@ -8,7 +9,7 @@ var Network = require('../network/manager').create();
  * @param  {Object} msg     - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-module.exports = function(msg, session) {
+exports.callback = function(msg, session) {
   var room = session.getRoom();
 
   if (!room) {
@@ -20,3 +21,16 @@ module.exports = function(msg, session) {
     session.authenticated = null;
   });
 }
+
+exports.struct = function(msg) {
+  var data = {};
+  data.msg  = msg.join(' ');
+  return data;
+}
+
+exports.manual = {
+  usage: '/leave',
+  info: 'leaves the chatroom.'
+}
+
+exports.permission = consts.MEMBER;

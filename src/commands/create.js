@@ -1,7 +1,8 @@
 'use strict';
 
-var Network = require('../network/manager').create();
+var Network = require('../network/manager').get();
 var utils   = require('../utils/helpers');
+var consts  = require('../utils/constants');
 var Server  = require('../db/server');
 var Log     = require('../utils/log');
 
@@ -11,7 +12,7 @@ var Log     = require('../utils/log');
  * @param  {Object} msg     - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-module.exports = function(msg, session) {
+exports.callback = function(msg, session) {
   var name = msg.name;
   var pass = msg.pass;
   var sid  = session.id;
@@ -46,3 +47,17 @@ module.exports = function(msg, session) {
     }
   });
 }
+
+exports.struct = function(msg) {
+  var data = {};
+  data.name = msg[0];
+  data.pass = msg[1];
+  return data;
+}
+
+exports.manual = {
+  usage: '/create <room> <password>',
+  info: 'creates a new room with a password.'
+}
+
+exports.permission = consts.GUEST;

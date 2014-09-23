@@ -1,6 +1,7 @@
 'use strict';
 
-var Network = require('../network/manager').create();
+var Network = require('../network/manager').get();
+var consts  = require('../utils/constants');
 
 /**
  * [onChatAction description]
@@ -8,7 +9,7 @@ var Network = require('../network/manager').create();
  * @param  {Object} msg     - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-module.exports = function(msg, session) {
+exports.callback = function(msg, session) {
   var message = msg.msg;
   var sid = session.id;
   var room = session.getRoom();
@@ -20,3 +21,16 @@ module.exports = function(msg, session) {
 
   Network.send(session.id, 'Sorry, you are not in any room.');
 }
+
+exports.struct = function(msg) {
+  var data = {};
+  data.msg = msg.join(' ');
+  return data;
+}
+
+exports.manual = {
+  usage: '/me <action>',
+  info: 'broadcast an action.'
+}
+
+exports.permission = consts.MEMBER;

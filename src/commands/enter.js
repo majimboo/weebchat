@@ -1,9 +1,10 @@
 'use strict';
 
-var Log = require('../utils/log');
-var User = require('../db/user');
-var utils = require('../utils/helpers');
-var Network = require('../network/manager').create();
+var Network = require('../network/manager').get();
+var utils   = require('../utils/helpers');
+var consts  = require('../utils/constants');
+var User    = require('../db/user');
+var Log     = require('../utils/log');
 
 /**
  * [enter description]
@@ -11,7 +12,7 @@ var Network = require('../network/manager').create();
  * @param  {Object} msg     - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-module.exports = function(msg, session) {
+exports.callback = function(msg, session) {
   var name = msg.name;
   var sid  = session.id;
 
@@ -35,3 +36,16 @@ module.exports = function(msg, session) {
 
   Network.send(session.id, 'Login Name?');
 }
+
+exports.struct = function(msg) {
+  var data = {};
+  data.name = msg;
+  return data;
+}
+
+exports.manual = {
+  usage: '/enter <nickname>',
+  info: 'joins the server as nickname.'
+}
+
+exports.permission = consts.STRANGER;

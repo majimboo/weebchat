@@ -175,20 +175,30 @@ Manager.prototype.receive = function(data, session) {
 Manager.prototype.command_callback = function(action, message, session) {
   // also check if action is not native_code
   var command = this.getCommand(action);
+  var sid = session.id;
+
+  // check permissions
+  if (session.permission < command.permission) {
+    this.send(sid, 'Sorry, you cannot use this command.');
+    return;
+  }
 
   if (!command) {
-    this.send(session.id, 'Sorry, invalid command.');
-    var identity = (session.realname || session.id);
-    return Log.warn('invalid command [%s] invoked by %s', action, identity);
+    this.send(sid, 'Sorry, invalid command.');
+    var identity = session.realname || sid;
+    Log.warn('invalid command [%s] invoked by %s', action, identity);
+    return;
   }
 
   var struct = command.struct(message);
 
   if (command.callback) {
-    return command.callback(struct, session);
+    var ok = command.callback(struct, session);
+    if (!ok) this.send(sid, 'Sorry, something went wrong.');
+    return;
   }
 
-  return Log.warn('command [%s] has no registered callback', action);
+  Log.warn('command [%s] has no registered callback', action);
 };
 
 Manager.prototype.listen_callback = function() {
@@ -203,15 +213,20 @@ Manager.prototype.getCommand = function(action) {
   return false;
 };
 
-Manager.prototype.registerCommand = function(cmd, struct) {
-  this.commands[cmd] = {};
-  this.commands[cmd].struct = struct;
-  this.commands[cmd].callback = null;
+Manager.prototype.registerCommand = function(name, command) {
+  // validate params
+  if (!name) throw new Error('command name is required');
+  if (!command) throw new Error('command is required');
+
+  if (!command.callback) throw new Error(name + ' is missing a callback');
+  if (!command.struct) throw new Error(name + ' is missing a struct');
+  if (!command.manual) throw new Error(name + ' is missing a manual');
+  if (!command.permission) throw new Error(name + ' is missing a permission');
+
+  this.commands[name] = command;
 };
 
-Manager.prototype.hookCommand = function(cmd, callback) {
-  this.commands[cmd].callback = callback;
-};
+var manager = null;
 
 /**
  * Creates a new weebchat manager.
@@ -219,22 +234,36 @@ Manager.prototype.hookCommand = function(cmd, callback) {
  * @return {Manager}
  */
 function create() {
-  var mgr = new Manager();
+  if (manager) {
+    throw new Error('Manager already exists.');
+  }
+
+  manager = new Manager();
 
   // register all known commands
-  _.each(commands, function(cmd, key) {
-    mgr.registerCommand(key, cmd);
-    var file = path.join(__dirname, '..', 'commands', key);
+  _.each(commands, function(name) {
+    var file = path.join(__dirname, '..', 'commands', name);
     if (fs.existsSync(file + '.js')) {
-      mgr.hookCommand(key, require(file));
+      manager.registerCommand(name, require(file));
     }
   });
 
-  return mgr;
+  return manager;
+}
+
+function get() {
+  if (!manager) {
+    throw new Error('No manager exists.');
+  }
+
+  return manager;
 }
 
 /**
  * @export
  * @type {Object}
  */
-module.exports.create = create;
+module.exports = {
+  create: create,
+  get: get
+};

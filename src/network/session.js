@@ -48,9 +48,12 @@ function Session(sid, socket) {
   this.id = sid;
   this.realname = null;
   this.nickname = null;
-  this.currentRoom = null;
-  this.settings = {};
   this.host = sid.split(':').shift();
+
+  this.currentRoom = null;
+
+  this.permission = null;
+  this.settings = {};
 
   // private
   Object.defineProperty(this, '_socket', { value: socket });

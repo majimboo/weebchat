@@ -74,14 +74,14 @@ describe('remote', function() {
     });
 
     describe('#connect', function() {
-     it('should receive method names from server', function(done) {
-      client.connect(7777);
-      client.on('ready', function() {
-        client.add.should.be.instanceof(Function);
-        client.count.should.be.instanceof(Function);
-        done();
+      it('should receive method names from server', function(done) {
+        client.connect(7777);
+        client.on('ready', function() {
+          client.add.should.be.instanceof(Function);
+          client.count.should.be.instanceof(Function);
+          done();
+        });
       });
-    });
    });
 
     describe('#method', function() {

@@ -3,7 +3,8 @@
 var _      = require('lodash');
 
 var Server = require('../db/server');
-var Network = require('../network/manager').create();
+var Network = require('../network/manager').get();
+var consts  = require('../utils/constants');
 
 /**
  * [rooms description]
@@ -11,7 +12,7 @@ var Network = require('../network/manager').create();
  * @param  {Object} msg     - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-module.exports = function(msg, session) {
+exports.callback = function(msg, session) {
   var sid = session.id;
 
   Server.findRooms(function(rooms) {
@@ -28,3 +29,16 @@ module.exports = function(msg, session) {
     Network.send(sid, 'There are currently no active rooms.');
   });
 }
+
+exports.struct = function(msg) {
+  var data = {};
+  data.msg  = msg.join(' ');
+  return data;
+}
+
+exports.manual = {
+  usage: '/rooms',
+  info: 'shows all the active rooms.'
+}
+
+exports.permission = consts.ALL;

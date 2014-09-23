@@ -1,6 +1,7 @@
 'use strict';
 
-var Network = require('../network/manager').create();
+var Network = require('../network/manager').get();
+var consts  = require('../utils/constants');
 
 /**
  * [kick description]
@@ -8,7 +9,7 @@ var Network = require('../network/manager').create();
  * @param  {Object} msg     - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-module.exports = function(msg, session) {
+exports.callback = function(msg, session) {
   var nick = msg.nick;
   var room = session.getRoom();
   var sid = session.id;
@@ -47,3 +48,16 @@ module.exports = function(msg, session) {
 
   Network.send(sid, 'Permission denied.');
 }
+
+exports.struct = function(msg) {
+  var data = {};
+  data.nick = msg[0];
+  return data;
+}
+
+exports.manual = {
+  usage: '/kick <nickname>',
+  info: 'kicks the nickname off the chatroom.'
+}
+
+exports.permission = consts.OPERATOR;
