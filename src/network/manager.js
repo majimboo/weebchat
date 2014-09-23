@@ -175,30 +175,33 @@ Manager.prototype.receive = function(data, session) {
 Manager.prototype.command_callback = function(action, message, session) {
   // also check if action is not native_code
   var command = this.getCommand(action);
+  var isAllowed = (session.permission > command.permission);
+  var noCommand = (command === false);
+  var commandCb = (!!command.callback);
+
+  var identity = session.realname || sid;
   var sid = session.id;
 
-  // check permissions
-  if (session.permission < command.permission) {
-    this.send(sid, 'Sorry, you cannot use this command.');
-    return;
-  }
-
-  if (!command) {
-    this.send(sid, 'Sorry, invalid command.');
-    var identity = session.realname || sid;
+  // check if command is valid
+  if (noCommand) {
     Log.warn('invalid command [%s] invoked by %s', action, identity);
-    return;
+    return this.send(sid, 'Sorry, invalid command.');
   }
 
-  var struct = command.struct(message);
-
-  if (command.callback) {
-    var ok = command.callback(struct, session);
-    if (!ok) this.send(sid, 'Sorry, something went wrong.');
-    return;
+  // check permissions
+  if (isAllowed) {
+    return this.send(sid, 'Sorry, you cannot use this command.');
   }
 
-  Log.warn('command [%s] has no registered callback', action);
+  // confirm command has a callback handler
+  if (commandCb) {
+    var ok = command.callback(command.struct(message), session);
+    if (!ok) return this.send(sid, 'Sorry, something went wrong.');
+    return true;
+  }
+
+  // fallback if none of the conditions above are met
+  Log.warn('something went wrong with [%s] command', action);
 };
 
 Manager.prototype.listen_callback = function() {

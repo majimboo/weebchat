@@ -22,11 +22,18 @@ exports.callback = function(msg, session) {
   var notTaken  = User.isNotTaken(name);
 
   if (validName && goodName && notTaken) {
-    // set the nickname for the session
+    // describe session
     session.setName(name);
+    session.permission = consts.GUEST;
+
+    // add user
     User.insert(name, session);
+
+    // response
     Network.send(sid, 'Welcome ' + session.realname + '!');
-    return Log.success('%s has entered the Lobby', session.realname);
+    Log.success('%s has entered the Lobby', session.realname);
+
+    return true;
   }
 
   if (!notTaken)
