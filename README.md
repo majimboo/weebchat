@@ -3,6 +3,11 @@ weebchat [![Build Status](https://travis-ci.org/majimboo/weebchat.svg?branch=mas
 
 A dynamically distributed telnet chat server. **"Work In Progress"**
 
+Demo
+----
+
+    $ telnet majidarif.com 9399
+
 Install
 -------
 
