@@ -1,45 +1,39 @@
 'use strict';
 
-var Network = require('../network/manager').get();
+var sessions = require('../network/session');
 var consts  = require('../utils/constants');
 
 /**
- * [onPrivateMsg description]
+ * [msg description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var message = msg.msg;
-  var nickname = msg.nick;
-  var sid = session.id;
-  var room = session.getRoom();
+exports.callback = function(params, session, reply) {
+  var message  = params.msg;
+  var nickname = params.nick;
+  var room     = session.getRoom();
+  var invalid  = (!nickname || !message.length);
+  var isSelf   = (nickname === session.nickname);
 
   // give info because user is using command incorrectly
-  if (!nickname || !message.length) {
-    Network.send(sid, '/msg <nickname> <message>');
-    return;
-  }
+  if (invalid) return reply(this.manual.usage);
 
   // cannot pm self
-  if (nickname === session.nickname) {
-    Network.send(sid, 'Sorry, you can not msg yourself.');
-    return;
-  }
+  if (isSelf) return reply('Sorry, you can not msg yourself.');
 
   if (room) {
-    var otherUser = Network.sessions.getByNick(nickname);
-    if (!otherUser) {
-      return Network.send(sid, 'Sorry, user is not online.');
-    }
-    if (otherUser.getRoom().name !== room.name) {
-      return Network.send(sid, 'Sorry, user is on another room.');
-    }
-    session.getRemote().privateMsg(otherUser.id, message, session);
-    return;
+    var user   = sessions.getByNick(nickname);
+    var sameRm = (user.getRoom().name === room.name);
+
+    if (!user) return reply('Sorry, user is not online.');
+    if (!sameRm) return reply('Sorry, user is on another room.');
+
+    return session.getRemote().privateMsg(user.id, message, session);
   }
 
-  Network.send(session.id, 'Sorry, you are not in any room.');
+  return reply('Sorry, you are not in any room.');
 }
 
 exports.struct = function(msg) {

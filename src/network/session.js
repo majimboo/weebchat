@@ -1,6 +1,8 @@
 'use strict';
 
 var _ = require('lodash');
+var consts = require('../utils/constants');
+
 var _sessions = {};
 
 function create(sid, socket) {
@@ -28,10 +30,10 @@ function getByNick(nickname) {
   });
 }
 
-function inRoom(room, exceptMe) {
+function inRoom(room, except) {
   return _.filter(_sessions, function(session) {
     var sRoom = session.getRoom();
-    return sRoom && sRoom.name === room && session.id !== exceptMe;
+    return sRoom && sRoom.name === room && session.id !== except;
   });
 }
 
@@ -52,7 +54,7 @@ function Session(sid, socket) {
 
   this.currentRoom = null;
 
-  this.permission = null;
+  this.permission = consts.STRANGER;
   this.settings = {};
 
   // private

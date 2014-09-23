@@ -3,31 +3,32 @@
 var _      = require('lodash');
 
 var Server = require('../db/server');
-var Network = require('../network/manager').get();
 var consts  = require('../utils/constants');
 
 /**
  * [rooms description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var sid = session.id;
+exports.callback = function(params, session, reply) {
+  Server.findRooms(callback);
 
-  Server.findRooms(function(rooms) {
-    if (!!rooms && !!rooms.length) {
-      Network.send(sid, 'Active rooms are:');
+  function callback(rooms) {
+    var valid = (!!rooms && !!rooms.length);
+
+    if (valid) {
+      reply('Active rooms are:');
       _.each(rooms, function(room) {
-        var userCount = '(' + _.keys(room.users).length + ')';
-        Network.send(sid, ' * ' + room.name + ' ' + userCount);
+        reply(' * %s (%s)', room.name, _.keys(room.users).length);
       });
-      Network.send(sid, 'end of list.');
+      reply('end of list.');
       return;
     }
 
-    Network.send(sid, 'There are currently no active rooms.');
-  });
+    reply('There are currently no active rooms.');
+  }
 }
 
 exports.struct = function(msg) {

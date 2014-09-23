@@ -1,19 +1,48 @@
 'use strict';
 
+var _ = require('lodash');
+
 var Network = require('../network/manager').get();
-var utils   = require('../utils/helpers');
 var consts  = require('../utils/constants');
-var MANUAL  = utils.loadManual();
+var util = require('util');
 
 /**
  * [help description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
  */
-exports.callback = function(msg, session) {
+exports.callback = function(params, session) {
   var sid = session.id;
-  Network.send(sid, MANUAL);
+  var commands = Network.getCommand();
+
+  // sort commands by permission level
+  var sortedCmd = _.sortBy(commands, 'permission');
+
+  // longest usage
+  var longest = _.max(sortedCmd, function(cmd) {
+    return cmd.manual.usage.length;
+  }).manual.usage.length;
+
+  // start building manual
+  var manuals = _.reduce(sortedCmd, formater, '');
+
+  // show the manual
+  Network.send(sid, 'Commands:');
+  Network.sendRaw(sid, manuals);
+
+  function formater(result, cmd) {
+    var usage  = cmd.manual.usage;
+    var info   = cmd.manual.info;
+    var wspace = Array(longest - usage.length + 1).join(' ');
+    var data   = '';
+
+    if (session.permission >= cmd.permission) {
+      data += util.format(' * %s %s - %s\r\n', usage, wspace, info);
+    }
+
+    return result += data;
+  }
 }
 
 exports.struct = function(msg) {

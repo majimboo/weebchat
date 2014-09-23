@@ -1,5 +1,6 @@
 'use strict';
 
+var _ = require('lodash');
 var fs = require('fs');
 var net = require('net');
 var util = require('util');
@@ -7,13 +8,11 @@ var path = require('path');
 var events = require('events');
 
 var commands = require('../db/command');
+var sessions = require('./session');
 
 var Log  = require('../utils/log');
 var User = require('../db/user');
 var Host = require('../db/host');
-
-var _   = require('lodash');
-var sessions = require('./session');
 
 /**
  * The network manager.
@@ -26,6 +25,7 @@ function Manager() {
 
   this.commands = {};
   this.maxUsers = 200; // default
+
   // expose sessions
   this.sessions = sessions;
 }
@@ -77,7 +77,7 @@ Manager.prototype.accept = function(socket) {
     self.sessions.destroy(session.id);
     User.delete(session.realname);
     Host.delete(session.host);
-    Log.success('%s has gone offline', session.realname || session.id);
+    Log.success('%s has gone offline', (session.realname || session.id));
   });
 
   // simple anti dos pattern
@@ -103,19 +103,33 @@ Manager.prototype.accept = function(socket) {
   }, 9000);
 };
 
-Manager.prototype.send = function(sid, msg) {
+Manager.prototype.send = function() {
+  var args = _.toArray(arguments);
+  var sid  = args.shift();
+
   // get the session
   var session = this.sessions.get(sid);
 
-  // i should implement a queue here
+  // format the msg
+  var msg = util.format.apply(null, args);
+
+  // maybe a queue here?
 
   // send msg
   session._socket.write(msg + '\r\n');
 };
 
-Manager.prototype.sendToRoom = function(room, msg, exceptMe) {
+Manager.prototype.sendRaw = function(sid, msg) {
+  // get the session
+  var session = this.sessions.get(sid);
+
+  // send msg
+  session._socket.write(msg + '\r\n');
+};
+
+Manager.prototype.sendToRoom = function(room, msg, except) {
   var self = this;
-  var sessions = this.sessions.inRoom(room, exceptMe);
+  var sessions = this.sessions.inRoom(room, except);
 
   // send msg to all
   _.each(sessions, function(session) {
@@ -127,6 +141,10 @@ Manager.prototype.receive = function(data, session) {
   // should do something to telnet commands
   // noticed that when I press ctrl+C nothings gets displayed anymore
   var self = this;
+  var userRoom = session.getRoom();
+
+  // validation
+  var stranger = (!session.realname && !session.nickname);
 
   // handle received data here
   var container = '';
@@ -136,25 +154,22 @@ Manager.prototype.receive = function(data, session) {
     data = data.toString();
   }
 
-  // do not allow beyond 100 characters
-  if (data.length > 100) {
-    this.send(session.id, 'Sorry, message cannot exceed 100 characters');
-    return;
-  }
-
   // stream framing
   data = container + data;
   var lines = data.split(/\r?\n/);
   container = lines.pop();
 
   _.each(lines, function(message) {
+    // do not allow beyond 100 characters
+    if (message.length > 100) {
+      return this.send(session.id, 'Sorry, cannot exceed 100 characters');
+    }
+
     // clean messages
     message = message.replace(/(\r\n|\n|\r)/gm, '');
 
-    // should be entry
-    if (!session.realname && !session.nickname) {
-      return self.command_callback('enter', message, session);
-    }
+    // must ask for name
+    if (stranger) return self.command_callback('enter', [message], session);
 
     // commands
     if (message.charCodeAt(0) === 0x2F) {
@@ -163,41 +178,45 @@ Manager.prototype.receive = function(data, session) {
       return self.command_callback(command, argv, session);
     }
 
-    // chat only allowed when in room
-    if (session.getRoom()) {
-      return self.command_callback('chat', message, session);
-    }
+    // fallback all none commands when in room to chat
+    if (userRoom) return self.command_callback('chat', [message], session);
 
     self.send(session.id, 'Sorry, invalid request.');
   });
 };
 
-Manager.prototype.command_callback = function(action, message, session) {
+Manager.prototype.command_callback = function(action, messages, session) {
+  var self = this;
+
   // also check if action is not native_code
-  var command = this.getCommand(action);
-  var isAllowed = (session.permission > command.permission);
+  var command   = self.getCommand(action);
+  var isAllowed = (session.permission >= command.permission);
   var noCommand = (command === false);
   var commandCb = (!!command.callback);
 
-  var identity = session.realname || sid;
   var sid = session.id;
+  var uid = session.realname || sid;
 
   // check if command is valid
   if (noCommand) {
-    Log.warn('invalid command [%s] invoked by %s', action, identity);
-    return this.send(sid, 'Sorry, invalid command.');
+    Log.warn('invalid command [%s] invoked by %s', action, uid);
+    return self.send(sid, 'Sorry, invalid command.');
   }
 
   // check permissions
-  if (isAllowed) {
-    return this.send(sid, 'Sorry, you cannot use this command.');
-  }
+  if (!isAllowed) return self.send(sid, 'Sorry, you cannot use this command.');
+
+  // check command arity
+  var cmdArity   = command.manual.usage.match(/<[^>]*>/g) || [];
+  var validArity = cmdArity.length === messages.length;
+  if (!validArity) return self.send(sid, command.manual.usage);
 
   // confirm command has a callback handler
   if (commandCb) {
-    var ok = command.callback(command.struct(message), session);
-    if (!ok) return this.send(sid, 'Sorry, something went wrong.');
-    return true;
+    var struct = command.struct(messages);
+    return command.callback(struct, session, function(reply) {
+      if (reply) self.send(sid, util.format.apply(null, arguments));
+    });
   }
 
   // fallback if none of the conditions above are met
@@ -209,6 +228,8 @@ Manager.prototype.listen_callback = function() {
 };
 
 Manager.prototype.getCommand = function(action) {
+  if (!action) return this.commands;
+
   if (this.commands.hasOwnProperty(action)) {
     return this.commands[action];
   }

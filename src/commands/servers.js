@@ -2,38 +2,37 @@
 
 var _      = require('lodash');
 
-var Network = require('../network/manager').get();
 var consts  = require('../utils/constants');
 var Server = require('../db/server');
 
 /**
  * [servers description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var sid = session.id;
+exports.callback = function(params, session, reply) {
   var allowed = session.realname === 'admin';
 
-  if (!allowed) {
-    return Network.send(sid, 'Permission denied.');
-  }
+  if (!allowed) return reply('Permission denied.');
 
-  Server.all(function(result) {
+  Server.all(callback);
+
+  function callback(result) {
     if (result.length) {
-      Network.send(sid, 'Active servers are:');
+      reply('Active servers are:');
       _.each(result, function(sv) {
-        var name =  sv.server.getName();
+        var name  = sv.server.getName();
         var count = sv.count;
-        var max = sv.server.maxRooms;
-        Network.send(sid, ' * ' + name + ' (' + count + '/' + max + ')');
+        var max   = sv.server.maxRooms;
+        reply(' * %s (%s/%s)', name, count, max);
       });
-      Network.send(sid, 'end of list.');
+      return reply('end of list.');
     }
 
-    Network.send(sid, 'There are currently no active servers.');
-  });
+    return reply('There are currently no active servers.');
+  }
 }
 
 exports.struct = function(msg) {

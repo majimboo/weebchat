@@ -1,6 +1,5 @@
 'use strict';
 
-var Network = require('../network/manager').get();
 var utils   = require('../utils/helpers');
 var consts  = require('../utils/constants');
 var User    = require('../db/user');
@@ -9,19 +8,20 @@ var Log     = require('../utils/log');
 /**
  * [enter description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var name = msg.name;
-  var sid  = session.id;
+exports.callback = function(params, session, reply) {
+  // params
+  var name = params.name;
 
   // validate name
-  var validName = utils.validateName(name);
   var goodName  = true;
   var notTaken  = User.isNotTaken(name);
+  var validName = (utils.validateName(name) && goodName && notTaken);
 
-  if (validName && goodName && notTaken) {
+  if (validName) {
     // describe session
     session.setName(name);
     session.permission = consts.GUEST;
@@ -29,24 +29,23 @@ exports.callback = function(msg, session) {
     // add user
     User.insert(name, session);
 
-    // response
-    Network.send(sid, 'Welcome ' + session.realname + '!');
     Log.success('%s has entered the Lobby', session.realname);
 
-    return true;
+    // response
+    return reply('Welcome %s!', session.realname);
   }
 
   if (!notTaken)
-    Network.send(sid, 'Sorry, name taken.');
+    reply('Sorry, name taken.');
   else
-    Network.send(sid, 'Sorry, name is invalid.');
+    reply('Sorry, name is invalid.');
 
-  Network.send(session.id, 'Login Name?');
+  return reply('Login Name?');
 }
 
 exports.struct = function(msg) {
   var data = {};
-  data.name = msg;
+  data.name = msg[0];
   return data;
 }
 

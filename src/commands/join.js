@@ -1,29 +1,28 @@
 'use strict';
 
-var Network = require('../network/manager').get();
 var consts  = require('../utils/constants');
 var Server  = require('../db/server');
 
 /**
  * [join description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var room = msg.room;
-  var sid  = session.id;
+exports.callback = function(params, session, reply) {
+  var room     = params.room;
+  var userRoom = session.getRoom();
 
   // validate params
-  if (!room) return Network.send(sid, '/join <room>');
+  if (!room) return reply(this.manual.usage);
 
   // cannot join while in room
-  if (session.getRoom()) {
-    Network.send(sid, 'Sorry, you must leave before joining another room.');
-    return;
-  }
+  if (userRoom) return reply('Sorry, must not be part of any chatroom.');
 
-  Server.findRoom(room, function(result) {
+  Server.findRoom(room, findRoom);
+
+  function findRoom(result) {
     var room = result.room;
     var server = result.server;
 
@@ -31,14 +30,15 @@ exports.callback = function(msg, session) {
     if (server) {
       server.joinRoom(room, session);
 
+      session.permission = consts.MEMBER;
       session.setRoom(room);
       session.setRemote(server.remote);
       return;
     }
 
     // fallback for unexpected behaviour
-    Network.send(sid, 'Sorry, no server is hosting such room.');
-  });
+    return reply('Sorry, no server is hosting such room.');
+  }
 }
 
 exports.struct = function(msg) {

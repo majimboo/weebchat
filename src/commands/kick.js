@@ -6,52 +6,45 @@ var consts  = require('../utils/constants');
 /**
  * [kick description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var nick = msg.nick;
-  var room = session.getRoom();
-  var sid = session.id;
+exports.callback = function(params, session, reply) {
+  var nickname = params.nickname;
+  var room     = session.getRoom();
+  var isSelf   = nickname === session.nickname;
 
-  if (!room) {
-    return Network.send(sid, 'You are not in any room.');
-  }
+  if (!room) return reply('You are not part of any chatroom.');
 
-  if (!nick) {
-    return Network.send(sid, '/kick <nick>');
-  }
+  if (!nickname) return reply(this.manual.usage);
 
   // cannot kick self
-  if (nick === session.nickname) {
-    Network.send(sid, 'Sorry, you can not kick yourself.');
-    return;
-  }
+  if (isSelf) return reply('Sorry, you can not kick yourself.');
 
   if (session.authenticated === room.name) {
-    var user = Network.sessions.getByNick(nick);
-    if (!user) {
-      return Network.send(sid, 'Sorry, user is not online.');
-    }
-    if (user.getRoom().name !== room.name) {
-      return Network.send(sid, 'Sorry, user is on another room.');
-    }
-    session.getRemote().kick(room, user, function() {
-      user.setRoom(null);
-      user.authenticated = null;
-      var noty = user.realname + ' has been kicked from the room.';
-      Network.send(user.id, noty + ' (** this is you)');
-      Network.sendToRoom(room.name, noty, user.id);
-    });
-    return;
+    var user = Network.sessions.getByNick(nickname);
+    var otherRm = user.getRoom().name !== room.name;
+
+    if (!user) return reply('Sorry, user is not online.');
+    if (otherRm) return reply('Sorry, user is on another room.');
+
+    session.getRemote().kick(room, user, callback);
   }
 
-  Network.send(sid, 'Permission denied.');
+  function callback() {
+    user.setRoom(null);
+    user.authenticated = null;
+    var noty = '* user has been kicked from chat: ' + user.realname;
+
+    Network.send(user.id, '%s (** this is you)', noty);
+    Network.sendToRoom(room.name, noty, user.id);
+  }
 }
 
 exports.struct = function(msg) {
   var data = {};
-  data.nick = msg[0];
+  data.nickname = msg[0];
   return data;
 }
 

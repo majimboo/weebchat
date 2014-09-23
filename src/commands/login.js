@@ -1,41 +1,34 @@
 'use strict';
 
-var Network = require('../network/manager').get();
 var consts  = require('../utils/constants');
 
 /**
- * [ns description]
+ * [login description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var password = msg.password;
-  var room = session.getRoom();
-  var sid = session.id;
+exports.callback = function(params, session, reply) {
+  var password = params.password;
+  var room     = session.getRoom();
+  var alreadyAuth = session.authenticated === room.name;
 
-  if (!password) {
-    return Network.send(sid, '/login <password>');
-  }
+  if (!password) return reply(this.manual.usage);
+  if (!room) return reply('You are not in any room.');
+  if (alreadyAuth) return reply('Already authenticated.');
 
-  if (!room) {
-    return Network.send(sid, 'You are not in any room.');
-  }
-
-  if (session.authenticated === room.name) {
-    return Network.send(sid, 'Already authenticated.');
-  }
-
-  // check if user already has password
+  // make sure room has password
   if (room.password) {
-    // if user already has a password compare it
+    // compare
     if (room.password === password) {
       session.authenticated = room.name;
-      return Network.send(sid, 'Successfully authenticated.');
+      session.permission = consts.OPERATOR;
+      return reply('Successfully authenticated.');
     }
   }
 
-  Network.send(sid, 'Sorry, login failed.');
+  return reply('Sorry, login failed.');
 }
 
 exports.struct = function(msg) {

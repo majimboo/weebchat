@@ -1,25 +1,25 @@
 'use strict';
 
-var Network = require('../network/manager').get();
 var consts  = require('../utils/constants');
 
 /**
- * [onChatAction description]
+ * [me description]
  *
- * @param  {Object} msg     - Message structure.
+ * @param  {Object} params  - Message structure.
  * @param  {Object} session - User session that sent the request.
+ * @param  {Function} reply - An alternative to Network.send(sid, ...).
  */
-exports.callback = function(msg, session) {
-  var message = msg.msg;
-  var sid = session.id;
+exports.callback = function(params, session, reply) {
+  var message = params.msg;
   var room = session.getRoom();
 
   // validate params
-  if (!message.length) return Network.send(sid, '/me <message>');
+  if (!message.length) return reply(this.manual.usage);
 
+  // call remote server
   if (room) return session.getRemote().chatAction(room, message, session);
 
-  Network.send(session.id, 'Sorry, you are not in any room.');
+  reply('Sorry, you are not in any room.');
 }
 
 exports.struct = function(msg) {
