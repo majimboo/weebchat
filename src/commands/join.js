@@ -14,9 +14,6 @@ exports.callback = function(params, session, reply) {
   var room     = params.room;
   var userRoom = session.getRoom();
 
-  // validate params
-  if (!room) return reply(this.manual.usage);
-
   // cannot join while in room
   if (userRoom) return reply('Sorry, must not be part of any chatroom.');
 

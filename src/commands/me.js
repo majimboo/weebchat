@@ -13,9 +13,6 @@ exports.callback = function(params, session, reply) {
   var message = params.msg;
   var room = session.getRoom();
 
-  // validate params
-  if (!message.length) return reply(this.manual.usage);
-
   // call remote server
   if (room) return session.getRemote().chatAction(room, message, session);
 

@@ -14,11 +14,7 @@ exports.callback = function(params, session, reply) {
   var message  = params.msg;
   var nickname = params.nick;
   var room     = session.getRoom();
-  var invalid  = (!nickname || !message.length);
   var isSelf   = (nickname === session.nickname);
-
-  // give info because user is using command incorrectly
-  if (invalid) return reply(this.manual.usage);
 
   // cannot pm self
   if (isSelf) return reply('Sorry, you can not msg yourself.');

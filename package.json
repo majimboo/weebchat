@@ -7,7 +7,7 @@
   },
   "bin": {
     "wc-lobby": "./bin/lobby",
-    "wc-server": "./bin/weebchat"
+    "wc-school": "./bin/school"
   },
   "scripts": {
     "start": "./bin/lobby --env production -p 9399",

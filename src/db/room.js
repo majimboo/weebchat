@@ -46,7 +46,11 @@ Rooms.prototype.findUser = function(nickname) {
   });
 };
 
-// individual
+/**
+ * A object that represents a single chatroom.
+ *
+ * @param {Object} data
+ */
 function Room(data) {
   // required
   if (!data.name) return 'room name is required';

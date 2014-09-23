@@ -111,7 +111,13 @@ Servers.prototype.findUser = function(nickname, callback) {
   }).catch(callback);
 };
 
-// individual
+/**
+ * A object that represents a single server.
+ *
+ * @param {String} id
+ * @param {Object} socket
+ * @param {Number} index
+ */
 function Server(id, socket, index) {
   // required
   if (!socket) return 'socket is required';

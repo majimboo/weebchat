@@ -14,7 +14,6 @@ exports.callback = function(params, session, reply) {
   var room     = session.getRoom();
   var alreadyAuth = session.authenticated === room.name;
 
-  if (!password) return reply(this.manual.usage);
   if (!room) return reply('You are not in any room.');
   if (alreadyAuth) return reply('Already authenticated.');
 

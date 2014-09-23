@@ -57,7 +57,7 @@ Connect
     /login secretpass
     Successfully authenticated.
     /kick majid
-    majid was kicked.
+    * user has been kicked from chat: majid
     /quit
     * user has left chat: arif (** this is you)
     BYE

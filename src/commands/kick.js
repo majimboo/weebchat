@@ -17,8 +17,6 @@ exports.callback = function(params, session, reply) {
 
   if (!room) return reply('You are not part of any chatroom.');
 
-  if (!nickname) return reply(this.manual.usage);
-
   // cannot kick self
   if (isSelf) return reply('Sorry, you can not kick yourself.');
 

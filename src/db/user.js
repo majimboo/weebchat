@@ -27,7 +27,11 @@ Users.prototype.delete = function(id) {
   delete this.data[id];
 };
 
-// individual
+/**
+ * A object that represents a single user.
+ *
+ * @param {Object} session
+ */
 function User(session) {
   // required
   if (!session.realname) return 'real name is required';

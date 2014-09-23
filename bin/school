@@ -3,13 +3,13 @@
 
 var program = require('commander');
 var project = require('../package');
-var engine  = require('../src/engine/weebchat');
+var engine  = require('../src/engine/school');
 var Log     = require('../src/utils/log');
 var YAML    = require('yamljs');
 
 program
   .version(project.version)
-  .option('-c, --config [path]', 'path to config', './config/weebchat.yml')
+  .option('-c, --config [path]', 'path to config', './config/school.yml')
   .parse(process.argv);
 
 /**
