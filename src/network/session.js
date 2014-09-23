@@ -96,5 +96,5 @@ Session.prototype.setRemote = function(remote) {
 };
 
 Session.prototype.setName = function(name) {
-  return this.nickname = this.realname = name;
+  this.nickname = this.realname = name;
 };
