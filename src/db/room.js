@@ -58,6 +58,8 @@ function Room(data) {
   this.name  = data.name;
   this.users = data.users || {};
   this.loc   = data.loc || null;
+
+  this.archive  = [];
   this.password = data.password || null;
 }
 
@@ -67,8 +69,20 @@ Room.prototype.userCount = function() {
 
 Room.prototype.addUser = function(nickname, session) {
   this.users[nickname] = session;
-}
+};
 
 Room.prototype.removeUser = function(nickname) {
   delete this.users[nickname];
-}
+};
+
+Room.prototype.saveMessage = function(sender, message) {
+  this.archive.push({
+    sender: sender,
+    message: message,
+    time: Date.now()
+  });
+};
+
+Room.prototype.getLast = function(n) {
+  return _.last(this.archive, n);
+};

@@ -81,23 +81,30 @@ function createRoom(name, password, callback) {
 }
 
 function joinRoom(room, session) {
+  var sid = session.id;
   var selectedRm = Room.select(room.name);
   selectedRm.addUser(session.nickname, session);
 
   // show room info
-  Remote.send(session.id, 'Entering room: ' + selectedRm.name);
+  Remote.send(sid, 'Entering room: ' + selectedRm.name);
   _.each(selectedRm.users, function(user) {
     if (user.nickname === session.nickname) {
-      Remote.send(session.id, ' * ' + user.nickname + ' (** this is you)');
+      Remote.send(sid, ' * %s (** this is you)', user.nickname);
     } else {
-      Remote.send(session.id, ' * ' + user.nickname);
+      Remote.send(sid, ' * %s', user.nickname);
     }
   });
-  Remote.send(session.id, 'end of list.');
+  Remote.send(sid, 'end of list.');
 
   // notify members of new user
   var noty = '* new user joined ' + selectedRm.name + ': ' + session.nickname;
-  Remote.sendToRoom(selectedRm.name, noty, session.id);
+  Remote.sendToRoom(selectedRm.name, noty, sid);
+
+  // send last 10 message archive
+  var archive = selectedRm.getLast(10);
+  _.each(archive, function(message) {
+    Remote.send(sid, '%s: %s', message.sender, message.message);
+  });
 
   Log.info('%s joined [%s] room', session.nickname, room.name);
 }
@@ -108,16 +115,18 @@ function leaveRoom(room, session, callback) {
 
   var noty = '* user has left chat: ' + session.nickname;
   Remote.sendToRoom(selectedRm.name, noty, session.id);
-  Remote.send(session.id, noty + ' (** this is you)');
+  Remote.send(session.id, '%s (** this is you)', noty);
 
   Log.info('%s left [%s] room', session.nickname, room.name);
   callback();
 }
 
 function chat(room, msg, session) {
-  // TODO chat anti flood
-
-  if (msg) Remote.sendToRoom(room.name, session.nickname + ': ' + msg);
+  if (msg) {
+    var selectedRm = Room.select(room.name);
+    selectedRm.saveMessage(session.nickname, msg);
+    Remote.sendToRoom(room.name, session.nickname + ': ' + msg);
+  }
 }
 
 function kick(room, session, callback) {
@@ -133,7 +142,7 @@ function chatAction(room, msg, session) {
 }
 
 function privateMsg(otherUser, msg, session) {
-  Remote.send(otherUser, session.nickname + ' says ' + msg);
+  Remote.send(otherUser, '%s says %s', session.nickname, msg);
 }
 
 /**
