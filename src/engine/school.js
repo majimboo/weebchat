@@ -9,6 +9,8 @@ var RPC  = require('../network/remote');
 var Network = new RPC.Server();
 var Remote  = new RPC.Client();
 
+var sessions = require('../network/session');
+
 /**
  * Starts the engine.
  *
@@ -51,6 +53,17 @@ function start(config) {
     chatAction: chatAction,
     privateMsg: privateMsg
   });
+
+  Network.on('new client', onNewClient);
+}
+
+function onNewClient(socket) {
+  // create a new session
+  var identity = socket.remoteAddress + ':' + socket.remotePort;
+  var session  = sessions.create(identity, socket);
+
+  session.socketErrorHandler(function() {});
+  session.socketCloseHandler(function() {});
 }
 
 function findUser(nickname, callback) {
@@ -75,7 +88,7 @@ function roomCount(callback) {
 
 function createRoom(name, password, callback) {
   Room.insert(name, { name: name, password: password });
-  callback(true);
+  if (callback) callback(true);
 
   Log.success('[%s] room created ', name);
 }
@@ -118,7 +131,7 @@ function leaveRoom(room, session, callback) {
   Remote.send(session.id, '%s (** this is you)', noty);
 
   Log.info('%s left [%s] room', session.nickname, room.name);
-  callback();
+  if (callback) callback();
 }
 
 function chat(room, msg, session) {

@@ -60,6 +60,8 @@ Server.prototype.$onConnection = function(socket) {
     socket.write(protocol.encode(_.toArray(arguments)));
   }
 
+  this.emit('new client', socket);
+
   // when connection arrives
   // send all function names being served
   // then client will create each prototype of those

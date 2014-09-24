@@ -8,6 +8,8 @@ var Server = require('../db/server');
 var Network = require('../network/manager').create();
 var RPC     = require('../network/remote');
 var Log     = require('../utils/log');
+var User    = require('../db/user');
+var Host    = require('../db/host');
 
 var Lobby  = new RPC.Server();
 
@@ -44,6 +46,38 @@ function start(config) {
 function onNewClient(session) {
   Network.send(session.id, '\u001B[2J\u001B[fWelcome to the Weeb chat server');
   Network.send(session.id, 'Login Name?');
+
+  session.socketErrorHandler(onSocketError);
+  session.socketCloseHandler(onSocketClose.bind(null, session));
+}
+
+function onSocketError(error) {
+  // show some nice info
+  Log.warn('socket error: %j', error);
+}
+
+function onSocketClose(session) {
+  // delete user from list
+  User.delete(session.realname);
+
+  // remove host from list
+  Host.delete(session.host);
+
+  // disconnect from remote
+  var remote = session.getRemote();
+  var room   = session.getRoom();
+
+  if (remote && room) {
+    remote.leaveRoom(session.getRoom(), session, function() {
+      Network.sessions.destroy(session.id);
+    });
+  } else {
+    // destroy session
+    Network.sessions.destroy(session.id);
+  }
+
+  // show some nice info
+  Log.success('%s has gone offline', (session.realname || session.id));
 }
 
 /**

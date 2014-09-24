@@ -95,6 +95,14 @@ Session.prototype.setRemote = function(remote) {
   });
 };
 
+Session.prototype.socketErrorHandler = function(callback) {
+  this._socket.on('error', callback);
+};
+
+Session.prototype.socketCloseHandler = function(callback) {
+  this._socket.on('close', callback);
+};
+
 Session.prototype.setName = function(name) {
   this.nickname = this.realname = name;
 };

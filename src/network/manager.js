@@ -11,7 +11,6 @@ var commands = require('../db/command');
 var sessions = require('./session');
 
 var Log  = require('../utils/log');
-var User = require('../db/user');
 var Host = require('../db/host');
 
 /**
@@ -70,14 +69,6 @@ Manager.prototype.accept = function(socket) {
   // frame all incoming stream
   session._socket.on('data', function(data) {
     self.receive(data, session);
-  });
-
-  // destroy session if socket is gone
-  session._socket.on('close', function() {
-    self.sessions.destroy(session.id);
-    User.delete(session.realname);
-    Host.delete(session.host);
-    Log.success('%s has gone offline', (session.realname || session.id));
   });
 
   // simple anti dos pattern
