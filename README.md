@@ -99,10 +99,11 @@ Connect
 TODO
 ----
 
-- Cross server or room communication.
 - `/goto <nickname>`. Goes to the room where the user currently is.
 - `/whois <nickname>`. Shows the user's information.
 - `/announce <message>`. Broadcasts a message to users. Admin ONLY.
+- Discard commands like CTRL+C.
+- Cross server or room communication.
 - Do not allow chat with empty messages.
 - Stricter arity checking.
 - Refactor src/db.
