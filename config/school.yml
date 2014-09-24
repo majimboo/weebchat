@@ -6,7 +6,7 @@ port: 7001
 
 # intercom
 inter_host: 127.0.0.1
-inter_port: 7000
+inter_port: 8000
 
 # mongo connection
 db: mongodb://localhost/qchat_test

@@ -21,9 +21,9 @@ exports.callback = function(params, session, reply) {
 
   if (room) {
     var user   = sessions.getByNick(nickname);
-    var sameRm = (user.getRoom().name === room.name);
-
     if (!user) return reply('Sorry, user is not online.');
+
+    var sameRm = (user.getRoom().name === room.name);
     if (!sameRm) return reply('Sorry, user is on another room.');
 
     return session.getRemote().privateMsg(user.id, message, session);

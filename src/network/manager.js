@@ -198,14 +198,14 @@ Manager.prototype.command_callback = function(action, messages, session) {
   if (!isAllowed) return self.send(sid, 'Sorry, you cannot use this command.');
 
   // check command arity
+  var cmdStruct  = command.struct(messages);
   var cmdArity   = command.manual.usage.match(/<[^>]*>/g) || [];
-  var validArity = cmdArity.length === messages.length;
+  var validArity = cmdArity.length === _.compact(_.toArray(cmdStruct)).length;
   if (!validArity) return self.send(sid, command.manual.usage);
 
   // confirm command has a callback handler
   if (commandCb) {
-    var struct = command.struct(messages);
-    return command.callback(struct, session, function(reply) {
+    return command.callback(cmdStruct, session, function(reply) {
       if (reply) self.send(sid, util.format.apply(null, arguments));
     });
   }
