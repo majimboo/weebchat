@@ -17,19 +17,20 @@ Features
 Commands
 --------
 
-- /help                      - shows this message.
-- /quit                      - disconnects from the server.
-- /rooms                     - shows all the active rooms.
-- /enter <nickname>          - joins the server as nickname.
-- /create <room> <password>  - creates a new room with a password.
-- /join <room>               - joins the specified room.
-- /chat <message>            - broadcasts message to everyone in room.
-- /leave                     - leaves the chatroom.
-- /login <password>          - be an operator of the room.
-- /me <action>               - broadcast an action.
-- /msg <nickname> <message>  - sends a private message to specified nickname.
-- /poke <nickname>           - poke another user in chatroom.
-- /kick <nickname>           - kicks the nickname off the chatroom.
+- `/help`                      - shows this message.
+- `/quit`                      - disconnects from the server.
+- `/rooms`                     - shows all the active rooms.
+- `/enter <nickname>`          - joins the server as nickname.
+- `/create <room> <password>`  - creates a new room with a password.
+- `/join <room>`               - joins the specified room.
+- `/chat <message>`            - broadcasts message to everyone in room.
+- `/leave`                     - leaves the chatroom.
+- `/login <password>`          - be an operator of the room.
+- `/me <action>`               - broadcast an action.
+- `/msg <nickname> <message>`  - sends a private message to specified nickname.
+- `/poke <nickname>`           - poke another user in chatroom.
+- `/kick <nickname>`           - kicks the nickname off the chatroom.
+- `/servers`                   - shows all active servers or schools.
 
 Demo
 ----
