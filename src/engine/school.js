@@ -51,6 +51,7 @@ function start(config) {
     chat: chat,
     kick: kick,
     chatAction: chatAction,
+    pokeUser: pokeUser,
     privateMsg: privateMsg
   });
 
@@ -152,6 +153,10 @@ function kick(room, session, callback) {
 
 function chatAction(room, msg, session) {
   Remote.sendToRoom(room.name, session.nickname + ' ' + msg);
+}
+
+function pokeUser(otherUser, session) {
+  Remote.send(otherUser, session.nickname + ' has poked you');
 }
 
 function privateMsg(otherUser, msg, session) {

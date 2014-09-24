@@ -11,6 +11,7 @@ module.exports = [
   'login',
   'me',
   'msg',
+  'poke',
   'quit',
   'rooms',
   'servers'
